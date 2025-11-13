@@ -1,5 +1,0 @@
-"C:\Program Files\JetBrains\CLion 2022.2.4\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=D:/Program Files/STMicroelectronics/STM32Cube/MinGW/bin/mingw32-make.exe" "-DCMAKE_C_COMPILER=D:/Program Files/STMicroelectronics/STM32Cube/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gcc.exe" "-DCMAKE_CXX_COMPILER=D:/Program Files/STMicroelectronics/STM32Cube/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-g++.exe" -G "CodeBlocks - MinGW Makefiles" -S C:\Users\Administrator1\Desktop\Gamepad\PS211 -B C:\Users\Administrator1\Desktop\Gamepad\PS211\cmake-build-debug
--- Minimal optimization, debug info included
--- Configuring done
--- Generating done
--- Build files have been written to: C:/Users/Administrator1/Desktop/Gamepad/PS211/cmake-build-debug

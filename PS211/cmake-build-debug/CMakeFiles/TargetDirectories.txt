@@ -1,3 +1,0 @@
-C:/Users/Administrator1/Desktop/Gamepad/PS211/cmake-build-debug/CMakeFiles/PS211.elf.dir
-C:/Users/Administrator1/Desktop/Gamepad/PS211/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Administrator1/Desktop/Gamepad/PS211/cmake-build-debug/CMakeFiles/rebuild_cache.dir

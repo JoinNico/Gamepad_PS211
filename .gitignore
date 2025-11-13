@@ -1,0 +1,54 @@
+# 编译输出文件
+*.o
+*.su
+*.lst
+*.map
+*.axf
+*.bin
+*.hex
+*.elf
+
+# 调试符号文件
+*.elf
+
+# 编译依赖文件
+*.d
+
+# Keil MDK 相关输出[citation:5]
+*.crf
+*.lnp
+*.htm
+*.build_log.htm
+*.dep
+*.iex
+*.i
+
+# IDE 和工具链特定文件
+# CLion
+.idea/
+cmake-build-*/
+
+# STM32CubeIDE
+.project
+.cproject
+.settings/
+
+# STM32CubeMX 生成的工程文件
+*.ioc
+*.mxproject
+
+# MDK-ARM 工程文件[citation:5]
+MDK-ARM/*.uvgui.*
+MDK-ARM/*.uvoptx
+MDK-ARM/*.uvprojx
+MDK-ARM/DebugConfig/
+MDK-ARM/RTE/
+MDK-ARM/Listings/
+MDK-ARM/Objects/
+
+# 日志文件
+JLinkLog.txt
+
+# 系统文件
+.DS_Store
+Thumbs.db
