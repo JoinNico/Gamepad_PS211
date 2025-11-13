@@ -1,0 +1,27 @@
+The system is: Windows - 10.0.26100 - AMD64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: D:/Program Files/STMicroelectronics/STM32Cube/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gcc.exe 
+Build flags: 
+Id flags: -c 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.o"
+
+The C compiler identification is GNU, found in "C:/Users/Administrator1/Desktop/Gamepad/cmake-build-debug/CMakeFiles/3.23.2/CompilerIdC/CMakeCCompilerId.o"
+
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: D:/Program Files/STMicroelectronics/STM32Cube/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gcc.exe 
+Build flags: 
+Id flags: -c 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.o"
+
+The C compiler identification is GNU, found in "C:/Users/Administrator1/Desktop/Gamepad/cmake-build-debug/CMakeFiles/3.23.2/CompilerIdC/CMakeCCompilerId.o"
+
