@@ -52,3 +52,8 @@ JLinkLog.txt
 # 系统文件
 .DS_Store
 Thumbs.db
+
+#特定文件夹
+Datasheet/
+Document/
+Structure/
