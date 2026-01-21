@@ -11,14 +11,9 @@ extern "C" {
 
 #include "adc.h"
 #include "math.h"
-#include <stdlib.h>
-#include <stdio.h>  // 添加stdio.h以使用printf
-#include <string.h>
-#include <stdarg.h>
-#include "usart.h"
 #include "main.h"
-#include <stdint.h>
 #include "filter.h"
+#include "debug.h"
 
 /* ==================== 配置参数 ==================== */
 
@@ -56,6 +51,7 @@ JoyStick_t Joy_GetLeftStick(void);
 JoyStick_t Joy_GetRightStick(void);
 int8_t Joy_GetMenuControl(uint32_t delta_ms);
 void Joy_GetCenterValues(uint16_t *left_x, uint16_t *left_y, uint16_t *right_x, uint16_t *right_y);
+
 
 #ifdef __cplusplus
 }

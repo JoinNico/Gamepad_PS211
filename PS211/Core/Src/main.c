@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
 #include "rtc.h"
@@ -28,20 +29,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdio.h"
-#include "../User/joystick.h"
-
-#ifdef __GNUC__
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-#else
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif
-PUTCHAR_PROTOTYPE
-{
-  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
-
-  return ch;
-}
+// #ifdef __GNUC__
+// #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+// #else
+// #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+// #endif
+// PUTCHAR_PROTOTYPE
+// {
+//   HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
+//
+//   return ch;
+// }
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,6 +65,7 @@ PUTCHAR_PROTOTYPE
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -114,15 +113,16 @@ int main(void)
   MX_TIM3_Init();
   MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
-  // HAL_ADCEx_Calibration_Start(&hadc1);
-  // uint16_t ADC_Values[6] = {0};
-  // HAL_ADC_Start_DMA(&hadc1,(uint32_t *)ADC_Values,6);
-  Joy_Init();
-  // Joy_PrintDebugInfo(1);  // 1表示包含原始ADC值
-  // uint32_t last_time = HAL_GetTick();
 
   /* USER CODE END 2 */
 
+  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -130,47 +130,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    Joy_Update();
-    // for (int i=0;i<4;i++){
-    //   printf("ADC[%d]=%d\r",i,ADC_Values[i]);
-    // }
-    // printf("\n\n");
-    // 方法1：打印完整信息（每500ms打印一次）
-    // static uint32_t print_timer = 0;
-    // if (HAL_GetTick() - print_timer > 500) {
-    //   print_timer = HAL_GetTick();
-    //
-    //   // 打印左摇杆所有数据
-    //   Joy_PrintLeftStickData(1, 1);  // 显示原始值和归一化值
-    //
-    //   // 或者只打印简洁版本
-    //   // Joy_PrintLeftStickSimple();
-    // }
-    // HAL_Delay(100);
-    // uint32_t current_time = HAL_GetTick();
-    // uint32_t delta_ms = current_time - last_time;
-    // last_time = current_time;
-
-    // 更新摇杆数据（每10-50ms调用）
-    // Joy_Update();
-
-    // 获取菜单控制命令
-    // int8_t menu_cmd = Joy_GetMenuControl(delta_ms);
-    // if (menu_cmd != 0) {
-    //   printf("Menu command: %d\r\n", menu_cmd);
-    //   // 处理菜单命令...
-    // }
-
-    // 每2秒打印详细调试信息
-    // static uint32_t debug_timer = 0;
-    // debug_timer += delta_ms;
-    // if (debug_timer >= 5000) {
-    //   debug_timer = 0;
-    //   Joy_PrintDebugInfo(1);  // 0表示不包含原始ADC值
-    // }
-    //
-    HAL_Delay(50);  // 10ms循环
   }
   /* USER CODE END 3 */
 }
@@ -226,6 +185,27 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

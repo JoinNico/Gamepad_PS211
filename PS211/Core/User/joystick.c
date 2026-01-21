@@ -1,9 +1,9 @@
 #include "joystick.h"
 
 /* 私有变量 */
-static uint16_t adc_buffer[6] = { 0 };  // ADC DMA缓冲区，10个通道
-static JoyStick_t leftJoy;       // 左摇杆
-static JoyStick_t rightJoy;      // 右摇杆
+static uint16_t adc_buffer[6] = { 0 };  // ADC DMA缓冲区，6个通道
+static JoyStick_t leftJoy;              // 左摇杆
+static JoyStick_t rightJoy;             // 右摇杆
 
 /* 校准中心值 */
 static uint16_t left_x_center = 2048;
@@ -18,11 +18,6 @@ static uint16_t filter_lx[WIN_SIZE], filter_ly[WIN_SIZE], filter_rx[WIN_SIZE], f
 static uint32_t menu_hold_timer = 0;
 static int8_t last_menu_direction = 0;  // -1:左, 0:中间, 1:右
 static uint8_t menu_fast_mode = 0;
-
-/* 调试相关 */
-static uint32_t debug_timer = 0;
-static uint32_t debug_update_count = 0;
-static uint32_t debug_last_print_time = 0;
 
 /**
  * @brief 中心死区处理
@@ -104,43 +99,6 @@ static float LogCurve(float input, uint8_t is_negative)
     float log_value = (expf(input * 2.0f) - 1.0f) / (expf(2.0f) - 1.0f);
 
     return is_negative ? -log_value : log_value;
-}
-
-/**
- * @brief 调试信息打印函数
- */
-// 替换原来的DebugPrint函数
-static void DebugPrint(const char* format, ...)
-{
-#if JOY_DEBUG_ENABLE
-    char buffer[128];
-    va_list args;
-
-    // 初始化参数列表
-    va_start(args, format);
-
-    // 安全地格式化字符串
-    int len = vsnprintf(buffer, sizeof(buffer), format, args);
-
-    // 结束参数列表
-    va_end(args);
-
-    // 确保字符串以空字符结尾
-    if (len >= (int)sizeof(buffer)) {
-        buffer[sizeof(buffer) - 1] = '\0';
-    }
-
-    // 使用HAL_UART直接输出，避免printf问题
-    HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
-#endif
-}
-
-// 添加简单的字符串输出函数
-static void DebugPrintString(const char* str)
-{
-#if JOY_DEBUG_ENABLE
-    HAL_UART_Transmit(&huart1, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
-#endif
 }
 
 /**
@@ -237,10 +195,8 @@ void Joy_Update(void)
     volatile uint16_t rx_raw = adc_buffer[2];
     volatile uint16_t ry_raw = adc_buffer[3];
 
-// #if JOY_DEBUG_ENABLE && JOY_DEBUG_VERBOSE
 //     DebugPrint("[Joy] Raw ADC: LX=%u, LY=%u, RX=%u, RY=%u\r\n",
 //               lx_raw, ly_raw, rx_raw, ry_raw);
-// #endif
 
     // 第二步：移动平均滤波
     uint16_t lx_filtered = SlidingFilter(filter_lx, lx_raw);
@@ -303,10 +259,11 @@ void Joy_Update(void)
     float throttle_mapped = LogCurve(y_magnitude, is_negative);
     leftJoy.throttle = (int16_t)(throttle_mapped * 100.0f);
 
-    DebugPrint("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
-              leftJoy.x_normalized, leftJoy.x_value,
-              leftJoy.y_normalized, leftJoy.y_value,
-              leftJoy.throttle);
+    //DebugPrint("Hello joy");
+    // printf("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
+    //           leftJoy.x_normalized, leftJoy.x_value,
+    //           leftJoy.y_normalized, leftJoy.y_value,
+    //           leftJoy.throttle);
 
     // DebugPrint("Right Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d)\r\n",
     //           rightJoy.x_normalized, rightJoy.x_value,
@@ -375,19 +332,10 @@ int8_t Joy_GetMenuControl(uint32_t delta_ms)
             menu_cmd = current_direction;  // 立即触发一次菜单移动
             menu_hold_timer = 0;
             menu_fast_mode = 0;
-
-#if JOY_DEBUG_ENABLE
-            DebugPrint("[Joy] Menu: %s direction triggered\r\n",
-                      current_direction > 0 ? "RIGHT" : "LEFT");
-#endif
         } else if (current_direction == 0) {
             // 返回中间位置
             menu_hold_timer = 0;
             menu_fast_mode = 0;
-
-#if JOY_DEBUG_ENABLE
-            DebugPrint("[Joy] Menu: Return to center\r\n");
-#endif
         }
         last_menu_direction = current_direction;
     } else {
@@ -399,9 +347,6 @@ int8_t Joy_GetMenuControl(uint32_t delta_ms)
             if (menu_hold_timer >= MENU_FAST_TRIGGER_TIME) {
                 if (!menu_fast_mode) {
                     menu_fast_mode = 1;
-#if JOY_DEBUG_ENABLE
-                    DebugPrint("[Joy] Menu: Fast mode activated\r\n");
-#endif
                 }
 
                 // 快速模式下定期触发
