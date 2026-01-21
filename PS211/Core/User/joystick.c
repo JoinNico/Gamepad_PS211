@@ -1,14 +1,7 @@
-//
-// Created by Administrator1 on 2025/11/14.
-//
-
-#include "user/Joy.h"
-#include "adc.h"
-#include "math.h"
-#include <stdlib.h>
+#include "joystick.h"
 
 /* 私有变量 */
-static uint32_t adc_buffer[10];  // ADC DMA缓冲区，10个通道
+static uint16_t adc_buffer[6] = { 0 };  // ADC DMA缓冲区，10个通道
 static JoyStick_t leftJoy;       // 左摇杆
 static JoyStick_t rightJoy;      // 右摇杆
 
@@ -19,41 +12,17 @@ static uint16_t right_x_center = 2048;
 static uint16_t right_y_center = 2048;
 
 /* 移动平均滤波缓冲区 */
-// Joy.c 中修改私有变量
-static FilterState_t filter_lx, filter_ly, filter_rx, filter_ry;
+static uint16_t filter_lx[WIN_SIZE], filter_ly[WIN_SIZE], filter_rx[WIN_SIZE], filter_ry[WIN_SIZE];
 
 /* 菜单控制相关 */
 static uint32_t menu_hold_timer = 0;
 static int8_t last_menu_direction = 0;  // -1:左, 0:中间, 1:右
 static uint8_t menu_fast_mode = 0;
 
-/**
- * @brief 移动平均滤波
- * @param buffer 滤波缓冲区
- * @param new_value 新采样值
- * @return 滤波后的值
- */
-static uint16_t MovingAverageFilter(FilterState_t *filter, uint16_t new_value)
-{
-    // 减去即将被替换的旧值
-    if (filter->filled) {
-        filter->sum -= filter->buffer[filter->index];
-    }
-
-    // 添加新值并更新缓冲区
-    filter->sum += new_value;
-    filter->buffer[filter->index] = new_value;
-
-    // 更新索引
-    filter->index = (filter->index + 1) % FILTER_WINDOW_SIZE;
-    if (!filter->filled && filter->index == 0) {
-        filter->filled = 1;
-    }
-
-    // 计算平均值
-    uint8_t count = filter->filled ? FILTER_WINDOW_SIZE : filter->index;
-    return (uint16_t)(filter->sum / count);
-}
+/* 调试相关 */
+static uint32_t debug_timer = 0;
+static uint32_t debug_update_count = 0;
+static uint32_t debug_last_print_time = 0;
 
 /**
  * @brief 中心死区处理
@@ -138,24 +107,56 @@ static float LogCurve(float input, uint8_t is_negative)
 }
 
 /**
- * @brief 摇杆初始化
+ * @brief 调试信息打印函数
  */
-// 初始化滤波状态
-static void InitFilterState(FilterState_t *filter, uint16_t init_value)
+// 替换原来的DebugPrint函数
+static void DebugPrint(const char* format, ...)
 {
-    for (uint8_t i = 0; i < FILTER_WINDOW_SIZE; i++) {
-        filter->buffer[i] = init_value;
+#if JOY_DEBUG_ENABLE
+    char buffer[128];
+    va_list args;
+
+    // 初始化参数列表
+    va_start(args, format);
+
+    // 安全地格式化字符串
+    int len = vsnprintf(buffer, sizeof(buffer), format, args);
+
+    // 结束参数列表
+    va_end(args);
+
+    // 确保字符串以空字符结尾
+    if (len >= (int)sizeof(buffer)) {
+        buffer[sizeof(buffer) - 1] = '\0';
     }
-    filter->sum = init_value * FILTER_WINDOW_SIZE;  // 预计算总和
-    filter->index = 0;
-    filter->filled = 0;
+
+    // 使用HAL_UART直接输出，避免printf问题
+    HAL_UART_Transmit(&huart1, (uint8_t*)buffer, strlen(buffer), HAL_MAX_DELAY);
+#endif
 }
 
+// 添加简单的字符串输出函数
+static void DebugPrintString(const char* str)
+{
+#if JOY_DEBUG_ENABLE
+    HAL_UART_Transmit(&huart1, (uint8_t*)str, strlen(str), HAL_MAX_DELAY);
+#endif
+}
+
+/**
+ * @brief 摇杆初始化
+ * @note 必须在使用前调用，会启动ADC DMA采集
+ *       自动检测摇杆中心位置并校准（允许±CENTER_CALIBRATION_TOL偏差）
+ *       如果检测到的中心值偏离ADC_CENTER超过容差，则使用默认值
+ *       初始化滤波缓冲区为中心值
+ */
 void Joy_Init(void)
 {
+    // ADC 采样校准
+    HAL_ADCEx_Calibration_Start(&hadc1);
+
     // 启动ADC DMA采集
-    if (HAL_ADC_Start_DMA(&hadc1, adc_buffer, 10) != HAL_OK) {
-        // 错误处理
+    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_buffer, 6) != HAL_OK) {
         Error_Handler();
     }
 
@@ -172,12 +173,12 @@ void Joy_Init(void)
     }
 
     // 计算平均值
-    uint16_t left_x_raw = lx_sum / INIT_SAMPLE_COUNT;
-    uint16_t left_y_raw = ly_sum / INIT_SAMPLE_COUNT;
+    uint16_t left_x_raw  = lx_sum / INIT_SAMPLE_COUNT;
+    uint16_t left_y_raw  = ly_sum / INIT_SAMPLE_COUNT;
     uint16_t right_x_raw = rx_sum / INIT_SAMPLE_COUNT;
     uint16_t right_y_raw = ry_sum / INIT_SAMPLE_COUNT;
 
-    // 使用宏定义简化校准逻辑
+    // 校准摇杆中心值
 #define CALIBRATE_CENTER(raw, center) \
         (abs((int32_t)(raw) - (int32_t)ADC_CENTER) <= CENTER_CALIBRATION_TOL) ? (raw) : ADC_CENTER
 
@@ -186,13 +187,15 @@ void Joy_Init(void)
     right_x_center = CALIBRATE_CENTER(right_x_raw, ADC_CENTER);
     right_y_center = CALIBRATE_CENTER(right_y_raw, ADC_CENTER);
 
-    // 初始化滤波缓冲区
-    InitFilterState(&filter_lx, left_x_center);
-    InitFilterState(&filter_ly, left_y_center);
-    InitFilterState(&filter_rx, right_x_center);
-    InitFilterState(&filter_ry, right_y_center);
+    // 初始化摇杆滤波数组（用校准后的中心值填充整个窗口）
+    for(int i = 0; i < WIN_SIZE; i++) {
+        filter_lx[i] = left_x_center;
+        filter_ly[i] = left_y_center;
+        filter_rx[i] = right_x_center;
+        filter_ry[i] = right_y_center;
+    }
 
-    // 初始化摇杆结构
+    // 初始化摇杆结构体
     leftJoy.x_raw = left_x_center;
     leftJoy.y_raw = left_y_center;
     leftJoy.x_normalized = 0.0f;
@@ -212,25 +215,38 @@ void Joy_Init(void)
     menu_hold_timer = 0;
     last_menu_direction = 0;
     menu_fast_mode = 0;
+
 }
 
 /**
  * @brief 更新摇杆数据
- * 应在主循环或定时器中调用，建议10-50ms调用一次
+ * @note 应在主循环或定时器中定期调用，建议10-50ms调用一次
+ *
+ * 处理流程：
+ * 1. 读取原始ADC值
+ * 2. 移动平均滤波（FILTER_WINDOW_SIZE个样本）
+ * 3. 应用中心死区（CENTER_DEADZONE）
+ * 4. 应用圆周死区（EDGE_DEADZONE）并归一化到[-1, 1]
+ * 5. Y轴油门应用对数曲线
  */
 void Joy_Update(void)
 {
     // 第一步：读取原始ADC值
-    uint16_t lx_raw = (uint16_t)adc_buffer[0];
-    uint16_t ly_raw = (uint16_t)adc_buffer[1];
-    uint16_t rx_raw = (uint16_t)adc_buffer[2];
-    uint16_t ry_raw = (uint16_t)adc_buffer[3];
+    volatile uint16_t lx_raw = adc_buffer[0];
+    volatile uint16_t ly_raw = adc_buffer[1];
+    volatile uint16_t rx_raw = adc_buffer[2];
+    volatile uint16_t ry_raw = adc_buffer[3];
 
-    // 第二步：移动平均滤波（使用结构体方式）
-    uint16_t lx_filtered = MovingAverageFilter(&filter_lx, lx_raw);
-    uint16_t ly_filtered = MovingAverageFilter(&filter_ly, ly_raw);
-    uint16_t rx_filtered = MovingAverageFilter(&filter_rx, rx_raw);
-    uint16_t ry_filtered = MovingAverageFilter(&filter_ry, ry_raw);
+// #if JOY_DEBUG_ENABLE && JOY_DEBUG_VERBOSE
+//     DebugPrint("[Joy] Raw ADC: LX=%u, LY=%u, RX=%u, RY=%u\r\n",
+//               lx_raw, ly_raw, rx_raw, ry_raw);
+// #endif
+
+    // 第二步：移动平均滤波
+    uint16_t lx_filtered = SlidingFilter(filter_lx, lx_raw);
+    uint16_t ly_filtered = SlidingFilter(filter_ly, ly_raw);
+    uint16_t rx_filtered = SlidingFilter(filter_rx, rx_raw);
+    uint16_t ry_filtered = SlidingFilter(filter_ry, ry_raw);
 
     // 保存滤波后的原始值
     leftJoy.x_raw = lx_filtered;
@@ -243,6 +259,10 @@ void Joy_Update(void)
     int16_t left_y = (int16_t)ly_filtered - (int16_t)left_y_center;
     int16_t right_x = (int16_t)rx_filtered - (int16_t)right_x_center;
     int16_t right_y = (int16_t)ry_filtered - (int16_t)right_y_center;
+
+    // DebugPrint("[Joy] Filtered: LX=%u(%+d), LY=%u(%+d), RX=%u(%+d), RY=%u(%+d)\r\n",
+    //       lx_filtered, left_x, ly_filtered, left_y,
+    //       rx_filtered, right_x, ry_filtered, right_y);
 
     // 第三步：应用中心死区
     left_x = ApplyCenterDeadzone(left_x, CENTER_DEADZONE);
@@ -262,28 +282,41 @@ void Joy_Update(void)
                                     ADC_MAX_RANGE, EDGE_DEADZONE,
                                     &right_x_norm, &right_y_norm);
 
-    // 保存归一化值（Y轴反转，向上为正）
-    leftJoy.x_normalized = left_x_norm;
-    leftJoy.y_normalized = -left_y_norm;  // 反转Y轴
-    rightJoy.x_normalized = right_x_norm;
-    rightJoy.y_normalized = -right_y_norm;  // 反转Y轴
+    // 保存归一化值（X轴向右为正，Y轴向上为正）
+    leftJoy.x_normalized = -left_x_norm;
+    leftJoy.y_normalized = left_y_norm;
+    rightJoy.x_normalized = -right_x_norm;
+    rightJoy.y_normalized = right_y_norm;
+
+    // DebugPrint("[Joy] Normalized: LX=%.3f, LY=%.3f, RX=%.3f, RY=%.3f\r\n",
+    //           leftJoy.x_normalized, leftJoy.y_normalized, rightJoy.x_normalized, rightJoy.y_normalized);
 
     // 转换为-100到100的整数值（用于菜单等）
-    leftJoy.x_value = (int16_t)(left_x_norm * 100.0f);
-    leftJoy.y_value = (int16_t)(-left_y_norm * 100.0f);
-    rightJoy.x_value = (int16_t)(right_x_norm * 100.0f);
-    rightJoy.y_value = (int16_t)(-right_y_norm * 100.0f);
+    leftJoy.x_value = (int16_t)(-left_x_norm * 100.0f);
+    leftJoy.y_value = (int16_t)(left_y_norm * 100.0f);
+    rightJoy.x_value = (int16_t)(-right_x_norm * 100.0f);
+    rightJoy.y_value = (int16_t)(right_y_norm * 100.0f);
 
     // 左摇杆Y轴油门：应用对数曲线
     float y_magnitude = fabsf(leftJoy.y_normalized);
     uint8_t is_negative = leftJoy.y_normalized < 0;
     float throttle_mapped = LogCurve(y_magnitude, is_negative);
     leftJoy.throttle = (int16_t)(throttle_mapped * 100.0f);
+
+    DebugPrint("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
+              leftJoy.x_normalized, leftJoy.x_value,
+              leftJoy.y_normalized, leftJoy.y_value,
+              leftJoy.throttle);
+
+    // DebugPrint("Right Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d)\r\n",
+    //           rightJoy.x_normalized, rightJoy.x_value,
+    //           rightJoy.y_normalized, rightJoy.y_value);
 }
 
 /**
- * @brief 获取左摇杆油门值
- * @return 油门值 -100到100（上正下负）
+ * @brief 获取左摇杆油门值（对数曲线）
+ * @return 油门值 -100到100（向上为正，向下为负）
+ * @note 油门使用对数曲线，低速时更灵敏，高速时更平滑
  */
 int16_t Joy_GetThrottle(void)
 {
@@ -291,7 +324,9 @@ int16_t Joy_GetThrottle(void)
 }
 
 /**
- * @brief 获取左摇杆数据
+ * @brief 获取左摇杆完整数据
+ * @return 左摇杆数据结构
+ * @note 包含原始值、归一化值、整数值和油门值
  */
 JoyStick_t Joy_GetLeftStick(void)
 {
@@ -299,7 +334,9 @@ JoyStick_t Joy_GetLeftStick(void)
 }
 
 /**
- * @brief 获取右摇杆数据
+ * @brief 获取右摇杆完整数据
+ * @return 右摇杆数据结构
+ * @note 包含原始值、归一化值、整数值
  */
 JoyStick_t Joy_GetRightStick(void)
 {
@@ -308,9 +345,14 @@ JoyStick_t Joy_GetRightStick(void)
 
 /**
  * @brief 菜单控制处理
- * 左右划动控制菜单，保持1秒后进入快速模式
  * @param delta_ms 距离上次调用的时间间隔（毫秒）
- * @return 菜单移动命令：0-无动作，1-向右一次，-1-向左一次，2-快速向右，-2-快速向左
+ * @return 菜单移动命令：
+ *         0  - 无动作
+ *         1  - 向右移动一次
+ *        -1  - 向左移动一次
+ *         2  - 快速向右（保持MENU_FAST_TRIGGER_TIME后）
+ *        -2  - 快速向左（保持MENU_FAST_TRIGGER_TIME后）
+ * @note 基于左摇杆X轴，划动触发一次，保持1秒后进入快速模式
  */
 int8_t Joy_GetMenuControl(uint32_t delta_ms)
 {
@@ -333,10 +375,19 @@ int8_t Joy_GetMenuControl(uint32_t delta_ms)
             menu_cmd = current_direction;  // 立即触发一次菜单移动
             menu_hold_timer = 0;
             menu_fast_mode = 0;
+
+#if JOY_DEBUG_ENABLE
+            DebugPrint("[Joy] Menu: %s direction triggered\r\n",
+                      current_direction > 0 ? "RIGHT" : "LEFT");
+#endif
         } else if (current_direction == 0) {
             // 返回中间位置
             menu_hold_timer = 0;
             menu_fast_mode = 0;
+
+#if JOY_DEBUG_ENABLE
+            DebugPrint("[Joy] Menu: Return to center\r\n");
+#endif
         }
         last_menu_direction = current_direction;
     } else {
@@ -348,6 +399,9 @@ int8_t Joy_GetMenuControl(uint32_t delta_ms)
             if (menu_hold_timer >= MENU_FAST_TRIGGER_TIME) {
                 if (!menu_fast_mode) {
                     menu_fast_mode = 1;
+#if JOY_DEBUG_ENABLE
+                    DebugPrint("[Joy] Menu: Fast mode activated\r\n");
+#endif
                 }
 
                 // 快速模式下定期触发
@@ -365,22 +419,11 @@ int8_t Joy_GetMenuControl(uint32_t delta_ms)
 }
 
 /**
- * @brief ADC转换完成回调（可选）
- */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-    if (hadc->Instance == ADC1) {
-        // DMA传输完成，数据已在adc_buffer中
-        // 可以在这里设置标志位，在主循环中处理
-    }
-}
-
-/**
- * @brief 获取校准后的中心值
- * @param left_x 左摇杆X轴中心值输出
- * @param left_y 左摇杆Y轴中心值输出
- * @param right_x 右摇杆X轴中心值输出
- * @param right_y 右摇杆Y轴中心值输出
+ * @brief 获取校准后的中心值（用于调试）
+ * @param left_x 左摇杆X轴中心值输出（可为NULL）
+ * @param left_y 左摇杆Y轴中心值输出（可为NULL）
+ * @param right_x 右摇杆X轴中心值输出（可为NULL）
+ * @param right_y 右摇杆Y轴中心值输出（可为NULL）
  */
 void Joy_GetCenterValues(uint16_t *left_x, uint16_t *left_y, uint16_t *right_x, uint16_t *right_y)
 {
@@ -389,3 +432,6 @@ void Joy_GetCenterValues(uint16_t *left_x, uint16_t *left_y, uint16_t *right_x, 
     if (right_x) *right_x = right_x_center;
     if (right_y) *right_y = right_y_center;
 }
+
+
+
