@@ -20,7 +20,6 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
-#include "i2c.h"
 #include "rtc.h"
 #include "spi.h"
 #include "tim.h"
@@ -29,7 +28,20 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "astra/astra_rocket.h"
+#include "stdio.h"
+#include "../User/joystick.h"
+
+#ifdef __GNUC__
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif
+PUTCHAR_PROTOTYPE
+{
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
+
+  return ch;
+}
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,13 +109,18 @@ int main(void)
   MX_SPI3_Init();
   MX_ADC1_Init();
   MX_SPI2_Init();
-  MX_I2C1_Init();
   MX_RTC_Init();
   MX_USART1_UART_Init();
   MX_TIM3_Init();
+  MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
-  astraCoreInit();
-  astraCoreStart();
+  // HAL_ADCEx_Calibration_Start(&hadc1);
+  // uint16_t ADC_Values[6] = {0};
+  // HAL_ADC_Start_DMA(&hadc1,(uint32_t *)ADC_Values,6);
+  Joy_Init();
+  // Joy_PrintDebugInfo(1);  // 1表示包含原始ADC值
+  // uint32_t last_time = HAL_GetTick();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -113,6 +130,47 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    Joy_Update();
+    // for (int i=0;i<4;i++){
+    //   printf("ADC[%d]=%d\r",i,ADC_Values[i]);
+    // }
+    // printf("\n\n");
+    // 方法1：打印完整信息（每500ms打印一次）
+    // static uint32_t print_timer = 0;
+    // if (HAL_GetTick() - print_timer > 500) {
+    //   print_timer = HAL_GetTick();
+    //
+    //   // 打印左摇杆所有数据
+    //   Joy_PrintLeftStickData(1, 1);  // 显示原始值和归一化值
+    //
+    //   // 或者只打印简洁版本
+    //   // Joy_PrintLeftStickSimple();
+    // }
+    // HAL_Delay(100);
+    // uint32_t current_time = HAL_GetTick();
+    // uint32_t delta_ms = current_time - last_time;
+    // last_time = current_time;
+
+    // 更新摇杆数据（每10-50ms调用）
+    // Joy_Update();
+
+    // 获取菜单控制命令
+    // int8_t menu_cmd = Joy_GetMenuControl(delta_ms);
+    // if (menu_cmd != 0) {
+    //   printf("Menu command: %d\r\n", menu_cmd);
+    //   // 处理菜单命令...
+    // }
+
+    // 每2秒打印详细调试信息
+    // static uint32_t debug_timer = 0;
+    // debug_timer += delta_ms;
+    // if (debug_timer >= 5000) {
+    //   debug_timer = 0;
+    //   Joy_PrintDebugInfo(1);  // 0表示不包含原始ADC值
+    // }
+    //
+    HAL_Delay(50);  // 10ms循环
   }
   /* USER CODE END 3 */
 }
