@@ -1,5 +1,10 @@
 #include "joystick.h"
 
+#include <stdlib.h>
+#include <math.h>
+#include "adc.h"
+#include "debug.h"
+
 /* 私有变量 */
 static uint16_t adc_buffer[6] = { 0 };  // ADC DMA缓冲区，6个通道
 static JoyStick_t leftJoy;              // 左摇杆
@@ -12,7 +17,8 @@ static uint16_t right_x_center = 2048;
 static uint16_t right_y_center = 2048;
 
 /* 移动平均滤波缓冲区 */
-static uint16_t filter_lx[WIN_SIZE], filter_ly[WIN_SIZE], filter_rx[WIN_SIZE], filter_ry[WIN_SIZE];
+static uint16_t filter_lx[WIN_SIZE], filter_ly[WIN_SIZE],
+                filter_rx[WIN_SIZE], filter_ry[WIN_SIZE];
 
 /* 菜单控制相关 */
 static uint32_t menu_hold_timer = 0;
@@ -259,11 +265,11 @@ void Joy_Update(void)
     float throttle_mapped = LogCurve(y_magnitude, is_negative);
     leftJoy.throttle = (int16_t)(throttle_mapped * 100.0f);
 
-    //DebugPrint("Hello joy");
-    // printf("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
-    //           leftJoy.x_normalized, leftJoy.x_value,
-    //           leftJoy.y_normalized, leftJoy.y_value,
-    //           leftJoy.throttle);
+    // DebugPrint("Hello joy-update\r\n");
+    DebugPrint("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
+              leftJoy.x_normalized, leftJoy.x_value,
+              leftJoy.y_normalized, leftJoy.y_value,
+              leftJoy.throttle);
 
     // DebugPrint("Right Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d)\r\n",
     //           rightJoy.x_normalized, rightJoy.x_value,

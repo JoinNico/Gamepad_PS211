@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../User/joystick.h"
+#include "../User/debug.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,13 +50,14 @@
 /* USER CODE END Variables */
 osThreadId debugTaskHandle;
 osThreadId joystickTaskHandle;
+osMessageQId debugQueueHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
-void DebugTask(void const * argument);
+void StartDebugTask(void const * argument);
 void StartJoystickTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -98,17 +100,22 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* definition and creation of debugQueue */
+  osMessageQDef(debugQueue, 128, debug_message_t);
+  debugQueueHandle = osMessageCreate(osMessageQ(debugQueue), NULL);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
   /* definition and creation of debugTask */
-  osThreadDef(debugTask, DebugTask, osPriorityNormal, 0, 128);
+  osThreadDef(debugTask, StartDebugTask, osPriorityNormal, 0, 256);
   debugTaskHandle = osThreadCreate(osThread(debugTask), NULL);
 
   /* definition and creation of joystickTask */
-  osThreadDef(joystickTask, StartJoystickTask, osPriorityHigh, 0, 512);
+  osThreadDef(joystickTask, StartJoystickTask, osPriorityHigh, 0, 256);
   joystickTaskHandle = osThreadCreate(osThread(joystickTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -117,29 +124,25 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_DebugTask */
+/* USER CODE BEGIN Header_StartDebugTask */
 /**
-* @brief Function implementing the debugTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_DebugTask */
-void DebugTask(void const * argument)
+  * @brief  Function implementing the debugTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDebugTask */
+void StartDebugTask(void const * argument)
 {
-  /* USER CODE BEGIN DebugTask */
+  /* USER CODE BEGIN StartDebugTask */
   /* Infinite loop */
   for(;;)
   {
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    DebugPrint("Hello World1\r\n");
-    // printf("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
-    //           leftJoy.x_normalized, leftJoy.x_value,
-    //           leftJoy.y_normalized, leftJoy.y_value,
-    //           leftJoy.throttle);
-    //printf("Hello World2\r\n");
-    osDelay(500);
+    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    DebugPrint("hello DebugTask\r\n");
+
+    osDelay(1000);
   }
-  /* USER CODE END DebugTask */
+  /* USER CODE END StartDebugTask */
 }
 
 /* USER CODE BEGIN Header_StartJoystickTask */
@@ -156,7 +159,9 @@ void StartJoystickTask(void const * argument)
   for(;;)
   {
     Joy_Update();
-    osDelay(10);
+    // DebugPrint("hello JoystickTask\r\n");
+    // HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    osDelay(50);
   }
   /* USER CODE END StartJoystickTask */
 }

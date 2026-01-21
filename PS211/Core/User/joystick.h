@@ -9,11 +9,9 @@
 extern "C" {
 #endif
 
-#include "adc.h"
-#include "math.h"
-#include "main.h"
+
 #include "filter.h"
-#include "debug.h"
+
 
 /* ==================== 配置参数 ==================== */
 
