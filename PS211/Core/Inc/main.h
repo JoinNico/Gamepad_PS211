@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -41,7 +41,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+extern osMessageQId debugQueueHandle;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -83,10 +83,6 @@ void Error_Handler(void);
 #define OLED_CS_GPIO_Port GPIOC
 #define OLED_RST_Pin GPIO_PIN_5
 #define OLED_RST_GPIO_Port GPIOC
-#define GL_L_Pin GPIO_PIN_0
-#define GL_L_GPIO_Port GPIOB
-#define GL_R_Pin GPIO_PIN_1
-#define GL_R_GPIO_Port GPIOB
 #define NRF_IRQ_Pin GPIO_PIN_10
 #define NRF_IRQ_GPIO_Port GPIOB
 #define NRF_CE_Pin GPIO_PIN_11
@@ -109,8 +105,8 @@ void Error_Handler(void);
 #define KEY2_GPIO_Port GPIOC
 #define BEEP_Pin GPIO_PIN_8
 #define BEEP_GPIO_Port GPIOA
-#define LED_Pin GPIO_PIN_11
-#define LED_GPIO_Port GPIOA
+#define LED1_Pin GPIO_PIN_11
+#define LED1_GPIO_Port GPIOA
 #define IMU_CS_Pin GPIO_PIN_2
 #define IMU_CS_GPIO_Port GPIOD
 #define IMU_SCK_Pin GPIO_PIN_3
