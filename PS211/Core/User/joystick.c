@@ -5,6 +5,7 @@
 #include "adc.h"
 #include "tim.h"
 #include "debug.h"
+#include "filter.h"
 
 
 /* 私有变量 */

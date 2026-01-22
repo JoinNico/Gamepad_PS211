@@ -28,7 +28,7 @@
 
 #define LOG_TAG      "elog"
 
-#include <elog.h>
+#include "elog.h"
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>

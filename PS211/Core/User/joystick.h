@@ -9,8 +9,7 @@
 extern "C" {
 #endif
 
-
-#include "filter.h"
+#include <stdint.h>
 
 
 /* ==================== 配置参数 ==================== */
