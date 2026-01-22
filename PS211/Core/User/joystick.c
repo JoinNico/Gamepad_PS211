@@ -3,10 +3,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include "adc.h"
+#include "tim.h"
 #include "debug.h"
 
+
 /* 私有变量 */
-static uint16_t adc_buffer[6] = { 0 };  // ADC DMA缓冲区，6个通道
+volatile static uint16_t adc_buffer[4] = { 0 };  // ADC DMA缓冲区，4个通道
 static JoyStick_t leftJoy;              // 左摇杆
 static JoyStick_t rightJoy;             // 右摇杆
 
@@ -119,17 +121,23 @@ void Joy_Init(void)
     // ADC 采样校准
     HAL_ADCEx_Calibration_Start(&hadc1);
 
-    // 启动ADC DMA采集
-    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_buffer, 6) != HAL_OK) {
+    // 启动ADC DMA
+    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_buffer, 4) != HAL_OK) {
         Error_Handler();
     }
+
+    // 启动 TIM8 以开始产生 100Hz TRGO 信号 -> 10ms 一次 ADC 转换
+    HAL_TIM_Base_Start(&htim8);
+
+    // 确保初始化校准数据干净
+    HAL_Delay(5);
 
     // 多次采样求平均作为中心值，提高校准精度
 #define INIT_SAMPLE_COUNT 10
     uint32_t lx_sum = 0, ly_sum = 0, rx_sum = 0, ry_sum = 0;
 
     for (int i = 0; i < INIT_SAMPLE_COUNT; i++) {
-        HAL_Delay(5); // 间隔采样
+        HAL_Delay(15); // 间隔采样，此时OS未启动，无法使用osDelay();
         lx_sum += adc_buffer[0];
         ly_sum += adc_buffer[1];
         rx_sum += adc_buffer[2];
@@ -201,8 +209,8 @@ void Joy_Update(void)
     volatile uint16_t rx_raw = adc_buffer[2];
     volatile uint16_t ry_raw = adc_buffer[3];
 
-//     DebugPrint("[Joy] Raw ADC: LX=%u, LY=%u, RX=%u, RY=%u\r\n",
-//               lx_raw, ly_raw, rx_raw, ry_raw);
+     // DebugPrint("[Joy] Raw ADC: LX=%u, LY=%u, RX=%u, RY=%u\r\n",
+     //           lx_raw, ly_raw, rx_raw, ry_raw);
 
     // 第二步：移动平均滤波
     uint16_t lx_filtered = SlidingFilter(filter_lx, lx_raw);
@@ -265,11 +273,10 @@ void Joy_Update(void)
     float throttle_mapped = LogCurve(y_magnitude, is_negative);
     leftJoy.throttle = (int16_t)(throttle_mapped * 100.0f);
 
-    // DebugPrint("Hello joy-update\r\n");
-    DebugPrint("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
-              leftJoy.x_normalized, leftJoy.x_value,
-              leftJoy.y_normalized, leftJoy.y_value,
-              leftJoy.throttle);
+    // DebugPrint("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
+    //           leftJoy.x_normalized, leftJoy.x_value,
+    //           leftJoy.y_normalized, leftJoy.y_value,
+    //           leftJoy.throttle);
 
     // DebugPrint("Right Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d)\r\n",
     //           rightJoy.x_normalized, rightJoy.x_value,

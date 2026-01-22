@@ -83,10 +83,6 @@ void Error_Handler(void);
 #define OLED_CS_GPIO_Port GPIOC
 #define OLED_RST_Pin GPIO_PIN_5
 #define OLED_RST_GPIO_Port GPIOC
-#define GL_L_Pin GPIO_PIN_0
-#define GL_L_GPIO_Port GPIOB
-#define GL_R_Pin GPIO_PIN_1
-#define GL_R_GPIO_Port GPIOB
 #define NRF_IRQ_Pin GPIO_PIN_10
 #define NRF_IRQ_GPIO_Port GPIOB
 #define NRF_CE_Pin GPIO_PIN_11

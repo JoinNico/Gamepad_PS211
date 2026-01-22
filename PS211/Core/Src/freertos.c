@@ -138,7 +138,6 @@ void StartDebugTask(void const * argument)
   for(;;)
   {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    DebugPrint("hello DebugTask\r\n");
 
     osDelay(1000);
   }
@@ -159,9 +158,8 @@ void StartJoystickTask(void const * argument)
   for(;;)
   {
     Joy_Update();
-    // DebugPrint("hello JoystickTask\r\n");
-    // HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    osDelay(50);
+
+    osDelay(10);
   }
   /* USER CODE END StartJoystickTask */
 }
