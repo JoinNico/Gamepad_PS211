@@ -1,10 +1,13 @@
+#define LOG_TAG    "joystick.c"
+// #define LOG_LVL    ELOG_LVL_DEBUG
+
 #include "joystick.h"
 
 #include <stdlib.h>
 #include <math.h>
 #include "adc.h"
 #include "tim.h"
-#include "debug.h"
+#include "../../3rdParty/elog.h"
 #include "filter.h"
 
 
@@ -213,7 +216,7 @@ void Joy_Update(void)
     volatile uint16_t rx_raw = adc_buffer[2];
     volatile uint16_t ry_raw = adc_buffer[3];
 
-     // DebugPrint("[Joy] Raw ADC: LX=%u, LY=%u, RX=%u, RY=%u\r\n",
+     // log_i("Raw ADC: LX=%u, LY=%u, RX=%u, RY=%u",
      //           lx_raw, ly_raw, rx_raw, ry_raw);
 
     // 第二步：移动平均滤波
@@ -234,7 +237,7 @@ void Joy_Update(void)
     int16_t right_x = (int16_t)rx_filtered - (int16_t)right_x_center;
     int16_t right_y = (int16_t)ry_filtered - (int16_t)right_y_center;
 
-    // DebugPrint("[Joy] Filtered: LX=%u(%+d), LY=%u(%+d), RX=%u(%+d), RY=%u(%+d)\r\n",
+    // log_i("Filtered: LX=%u(%+d), LY=%u(%+d), RX=%u(%+d), RY=%u(%+d)",
     //       lx_filtered, left_x, ly_filtered, left_y,
     //       rx_filtered, right_x, ry_filtered, right_y);
 
@@ -262,7 +265,7 @@ void Joy_Update(void)
     rightJoy.x_normalized = -right_x_norm;
     rightJoy.y_normalized = right_y_norm;
 
-    // DebugPrint("[Joy] Normalized: LX=%.3f, LY=%.3f, RX=%.3f, RY=%.3f\r\n",
+    // log_i("Normalized: LX=%.3f, LY=%.3f, RX=%.3f, RY=%.3f",
     //           leftJoy.x_normalized, leftJoy.y_normalized, rightJoy.x_normalized, rightJoy.y_normalized);
 
     // 转换为-100到100的整数值（用于菜单等）
@@ -277,12 +280,12 @@ void Joy_Update(void)
     float throttle_mapped = LogCurve(y_magnitude, is_negative);
     leftJoy.throttle = (int16_t)(throttle_mapped * 100.0f);
 
-    // DebugPrint("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d\r\n",
-    //           leftJoy.x_normalized, leftJoy.x_value,
-    //           leftJoy.y_normalized, leftJoy.y_value,
-    //           leftJoy.throttle);
+    log_i("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d",
+              leftJoy.x_normalized, leftJoy.x_value,
+              leftJoy.y_normalized, leftJoy.y_value,
+              leftJoy.throttle);
 
-    // DebugPrint("Right Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d)\r\n",
+    // log_i("Right Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d)",
     //           rightJoy.x_normalized, rightJoy.x_value,
     //           rightJoy.y_normalized, rightJoy.y_value);
 }

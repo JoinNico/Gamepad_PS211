@@ -120,8 +120,10 @@ const char *elog_port_get_time(void) {
         last_tick = current_tick;
     }
 
-    snprintf(cur_system_time, sizeof(cur_system_time), "%02lu:%02lu:%02lu.%03lu",
-             hour, min, sec, ms);
+    // snprintf(cur_system_time, sizeof(cur_system_time), "%02lu:%02lu:%02lu.%03lu",
+    //          hour, min, sec, ms);
+    snprintf(cur_system_time, sizeof(cur_system_time), "%02lu:%02lu.%03lu",
+             min, sec, ms);
 
     return cur_system_time;
 }

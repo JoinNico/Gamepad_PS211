@@ -166,23 +166,23 @@ void StartDebugTask(void const * argument)
     // DebugPrint("Debug Task \r\n");
     // elog_v(TAG, "HelloWorld");
     // elog_d(TAG, "HelloWorld");
-    elog_i(TAG, "HelloWorld");
-    elog_w(TAG, "HelloWorld");
-    elog_e(TAG, "HelloWorld");
-  //  elog_a(TAG, "0123456789");
-    /* 输出调试信息 */
-    elog_i("Debug", "LED toggled, count: %lu", count++);
-    elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
-    elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
-    elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
-
-    if (count % 10 == 0) {
-      elog_i("System", "System running for %lu seconds", HAL_GetTick() / 1000);
-    }
-
-    if (count % 20 == 0) {
-      elog_w("System", "This is a warning message at count %lu", count);
-    }
+  //   elog_i(TAG, "HelloWorld");
+  //   elog_w(TAG, "HelloWorld");
+  //   elog_e(TAG, "HelloWorld");
+  // //  elog_a(TAG, "0123456789");
+  //   /* 输出调试信息 */
+  //   elog_i("Debug", "LED toggled, count: %lu", count++);
+  //   elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
+  //   elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
+  //   elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
+  //
+  //   if (count % 10 == 0) {
+  //     elog_i("System", "System running for %lu seconds", HAL_GetTick() / 1000);
+  //   }
+  //
+  //   if (count % 20 == 0) {
+  //     elog_w("System", "This is a warning message at count %lu", count);
+  //   }
 
     osDelay(1000);
   }

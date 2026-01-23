@@ -33,19 +33,41 @@
 ### 📅 明日计划
 - 优化joystick ADC采样
 
-## 2025年1月21日 (周三)
+## 2025年1月22日 (周四)
 
 ### ✅ 完成的工作
 - ADC 从软件触发改为 TIM8 TRGO 的 100 Hz 硬件触发
--
+- 添加了 EasyLogger 文件，但是notwork
 -
 
 ### 📝 遇到的问题
 - CMSIS 的 osDelay 是 OS 实现，需要启动 OS 后才可以使用
 - ADC 初始化校准中，不能立刻读取 DMA 的脏数据，需要Delay一会，确保数据整洁
+- notwork 似乎是信号量创建的问题
 
 ### 💭 感悟思考
 - 
+
+### 📅 明日计划
+- 
+
+## 2025年1月23日 (周五)
+
+### ✅ 完成的工作
+- 修复 EasyLogger notwork
+- 调试 EasyLogger PASS
+
+### 📝 遇到的问题
+- 看了很久的队列断言
+`configASSERT( !( ( pvItemToQueue == NULL ) && ( pxQueue->uxItemSize != ( UBaseType_t ) 0U ) ) );`
+调试器说uxItemSize = 3，不是信号量；但问题不在这里，只是StartELogTask任务的Heap空间太小了
+- 加入 EasyLogger 前`ram: 7640 B 15.54%; flash: 23360 B 8.91%`
+
+  加入 EasyLogger 后`ram: 29384 B 59.78%; flash: 62672 B 23.91%`
+
+  说明日志系统占用内存太大了，接下来考虑裁剪和优化
+### 💭 感悟思考
+- 终于 EasyLogger 能正常使用了
 
 ### 📅 明日计划
 - 
