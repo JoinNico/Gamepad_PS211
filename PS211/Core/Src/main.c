@@ -29,7 +29,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "../User/debug.h"
+#include "../User/joystick.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,7 +106,7 @@ int main(void)
   MX_ADC2_Init();
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
-
+  Joy_Init();             // 初始化 Joystick 数据结构
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

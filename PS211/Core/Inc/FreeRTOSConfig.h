@@ -63,8 +63,8 @@
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 7 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
-#define configTOTAL_HEAP_SIZE                    ((size_t)3072)
-#define configMAX_TASK_NAME_LEN                  ( 16 )
+#define configTOTAL_HEAP_SIZE                    ((size_t)20480)
+#define configMAX_TASK_NAME_LEN                  ( 32 )
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1
 #define configQUEUE_REGISTRY_SIZE                8
@@ -79,6 +79,9 @@
 #define configUSE_CO_ROUTINES                    0
 #define configMAX_CO_ROUTINE_PRIORITIES          ( 2 )
 
+/* The following flag must be enabled only when using newlib */
+#define configUSE_NEWLIB_REENTRANT          1
+
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet             1
@@ -89,6 +92,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelayUntil              0
 #define INCLUDE_vTaskDelay                   1
 #define INCLUDE_xTaskGetSchedulerState       1
+#define INCLUDE_uxTaskGetStackHighWaterMark  1
 
 /* Cortex-M specific definitions. */
 #ifdef __NVIC_PRIO_BITS

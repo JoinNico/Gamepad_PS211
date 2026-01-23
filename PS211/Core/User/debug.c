@@ -4,10 +4,7 @@
 #include <stdarg.h>
 #include "cmsis_os.h"
 #include "usart.h"
-
-
-// 调试任务句柄
-extern osThreadId debugTaskHandle;
+#include "../../3rdParty/elog.h"
 
 /**
  * @brief 安全的串口发送函数（内部使用）
@@ -15,7 +12,8 @@ extern osThreadId debugTaskHandle;
 static void debug_send_string(const char* str, uint16_t len)
 {
     // 使用阻塞方式发送，超时100ms
-    HAL_UART_Transmit(&huart1, (uint8_t*)str, len, 100);
+    //HAL_UART_Transmit(&huart1, (uint8_t*)str, len, 100);
+    HAL_UART_Transmit_DMA(&huart1, (uint8_t*)str, len);
 }
 
 /**
@@ -23,58 +21,44 @@ static void debug_send_string(const char* str, uint16_t len)
  */
 void DebugPrint(const char* format, ...)
 {
-    // 检查队列是否有效
-    if (debugQueueHandle == NULL)
-    {
-        // 队列未初始化，直接输出
-        static char buffer[128];
-        va_list args;
-
-        va_start(args, format);
-        int len = vsnprintf(buffer, sizeof(buffer), format, args);
-        va_end(args);
-
-        if (len > 0)
-        {
-            debug_send_string(buffer, len);
-        }
-        return;
-    }
-
-    debug_message_t msg;
+    static char buffer[128];
     va_list args;
 
-    // 格式化消息
     va_start(args, format);
-    int len = vsnprintf(msg.message, sizeof(msg.message), format, args);
+    int len = vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
 
-    if (len <= 0)
-    {
-        return; // 格式化失败
+    if (len > 0) {
+        debug_send_string(buffer, len);
+    }
+}
+
+
+
+/**
+ * @brief 输出系统状态信息
+ */
+void log_system_status(void)
+{
+    /* 输出任务状态 */
+    log_i("System", "===== System Status =====");
+    log_i("System", "Tick Count: %lu", HAL_GetTick());
+    log_i("System", "Free Heap: %lu bytes", xPortGetFreeHeapSize());
+    log_i("System", "Minimum Ever Free Heap: %lu bytes", xPortGetMinimumEverFreeHeapSize());
+
+    /* 输出任务信息 */
+    TaskHandle_t debugTask = (TaskHandle_t)debugTaskHandle;
+    TaskHandle_t joystickTask = (TaskHandle_t)joystickTaskHandle;
+
+    if (debugTask != NULL) {
+        log_i("System", "DebugTask Stack High Water: %lu",
+              uxTaskGetStackHighWaterMark(debugTask));
     }
 
-    // 确保以空字符结尾
-    if (len >= (int)sizeof(msg.message))
-    {
-        len = sizeof(msg.message) - 1;
+    if (joystickTask != NULL) {
+        log_i("System", "JoystickTask Stack High Water: %lu",
+              uxTaskGetStackHighWaterMark(joystickTask));
     }
 
-    msg.length = len;
-
-    // 尝试将消息放入队列
-    osStatus status = osMessagePut(debugQueueHandle, (uint32_t)&msg, 0);
-
-    // 如果队列已满，等待10ms再试一次
-    if (status != osOK)
-    {
-        status = osMessagePut(debugQueueHandle, (uint32_t)&msg, 10);
-
-        // 如果仍然失败，直接输出（避免数据丢失）
-        if (status != osOK)
-        {
-            debug_send_string("[WARN] Queue full, direct output: ", 35);
-            debug_send_string(msg.message, len);
-        }
-    }
+    log_i("System", "=========================");
 }

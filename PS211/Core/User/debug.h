@@ -15,4 +15,7 @@ void Debug_Init(void);
 // 调试打印函数（格式化输出）
 void DebugPrint(const char* format, ...);
 
+void elog_init_system(void);
+void log_system_status(void);
+
 #endif // PS211_DEBUG_H

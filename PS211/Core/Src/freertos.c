@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "../User/joystick.h"
 #include "../User/debug.h"
+#include "../../3rdParty/elog.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,7 +51,10 @@
 /* USER CODE END Variables */
 osThreadId debugTaskHandle;
 osThreadId joystickTaskHandle;
-osMessageQId debugQueueHandle;
+osThreadId elog_taskHandle;
+osSemaphoreId elog_lockHandle;
+osSemaphoreId elog_asyncHandle;
+osSemaphoreId elog_dma_lockHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -59,6 +63,7 @@ osMessageQId debugQueueHandle;
 
 void StartDebugTask(void const * argument);
 void StartJoystickTask(void const * argument);
+void StartELogTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -85,12 +90,25 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackTy
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-  Joy_Init();
+
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* definition and creation of elog_lock */
+  osSemaphoreDef(elog_lock);
+  elog_lockHandle = osSemaphoreCreate(osSemaphore(elog_lock), 1);
+
+  /* definition and creation of elog_async */
+  osSemaphoreDef(elog_async);
+  elog_asyncHandle = osSemaphoreCreate(osSemaphore(elog_async), 1);
+
+  /* definition and creation of elog_dma_lock */
+  osSemaphoreDef(elog_dma_lock);
+  elog_dma_lockHandle = osSemaphoreCreate(osSemaphore(elog_dma_lock), 1);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -100,23 +118,22 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
-  /* Create the queue(s) */
-  /* definition and creation of debugQueue */
-  osMessageQDef(debugQueue, 128, debug_message_t);
-  debugQueueHandle = osMessageCreate(osMessageQ(debugQueue), NULL);
-
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
   /* definition and creation of debugTask */
-  osThreadDef(debugTask, StartDebugTask, osPriorityNormal, 0, 256);
+  osThreadDef(debugTask, StartDebugTask, osPriorityNormal, 0, 512);
   debugTaskHandle = osThreadCreate(osThread(debugTask), NULL);
 
   /* definition and creation of joystickTask */
-  osThreadDef(joystickTask, StartJoystickTask, osPriorityHigh, 0, 256);
+  osThreadDef(joystickTask, StartJoystickTask, osPriorityHigh, 0, 128);
   joystickTaskHandle = osThreadCreate(osThread(joystickTask), NULL);
+
+  /* definition and creation of elog_task */
+  osThreadDef(elog_task, StartELogTask, osPriorityLow, 0, 512);
+  elog_taskHandle = osThreadCreate(osThread(elog_task), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -134,10 +151,38 @@ void MX_FREERTOS_Init(void) {
 void StartDebugTask(void const * argument)
 {
   /* USER CODE BEGIN StartDebugTask */
+  static const char* TAG = "main";
+  /* 测试日志输出 */
+  // log_i("System", "EasyLogger initialized with USART1 output");
+  // log_i("System", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
+  // log_i("System", "System clock: %lu Hz", HAL_RCC_GetSysClockFreq());
+
+  uint32_t count = 0;
   /* Infinite loop */
   for(;;)
   {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    // log_system_status();
+    // DebugPrint("Debug Task \r\n");
+    // elog_v(TAG, "HelloWorld");
+    // elog_d(TAG, "HelloWorld");
+    elog_i(TAG, "HelloWorld");
+    elog_w(TAG, "HelloWorld");
+    elog_e(TAG, "HelloWorld");
+  //  elog_a(TAG, "0123456789");
+    /* 输出调试信息 */
+    elog_i("Debug", "LED toggled, count: %lu", count++);
+    elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
+    elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
+    elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
+
+    if (count % 10 == 0) {
+      elog_i("System", "System running for %lu seconds", HAL_GetTick() / 1000);
+    }
+
+    if (count % 20 == 0) {
+      elog_w("System", "This is a warning message at count %lu", count);
+    }
 
     osDelay(1000);
   }
@@ -162,6 +207,24 @@ void StartJoystickTask(void const * argument)
     osDelay(10);
   }
   /* USER CODE END StartJoystickTask */
+}
+
+/* USER CODE BEGIN Header_StartELogTask */
+/**
+* @brief Function implementing the elog_task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartELogTask */
+__weak void StartELogTask(void const * argument)
+{
+  /* USER CODE BEGIN StartELogTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartELogTask */
 }
 
 /* Private application code --------------------------------------------------*/

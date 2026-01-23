@@ -119,6 +119,9 @@ static float LogCurve(float input, uint8_t is_negative)
  */
 void Joy_Init(void)
 {
+    // TODO 1. 在RTOS启动前，使用 HAL_Delay 进行长时间阻塞采样，严重拖慢系统启动。
+    // TODO 2. 硬件初始化和软件校准耦合在一起，不符合实时系统分层设计。
+
     // ADC 采样校准
     HAL_ADCEx_Calibration_Start(&hadc1);
 

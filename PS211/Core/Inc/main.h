@@ -41,7 +41,13 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-extern osMessageQId debugQueueHandle;
+extern osThreadId joystickTaskHandle;
+extern osThreadId debugTaskHandle;
+extern osThreadId elog_taskHandle;
+
+extern osSemaphoreId elog_lockHandle;
+extern osSemaphoreId elog_asyncHandle;
+extern osSemaphoreId elog_dma_lockHandle;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
