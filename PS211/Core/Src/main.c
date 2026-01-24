@@ -105,8 +105,10 @@ int main(void)
   MX_TIM3_Init();
   MX_ADC2_Init();
   MX_TIM8_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   Joy_Init();             // 初始化 Joystick 数据结构
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

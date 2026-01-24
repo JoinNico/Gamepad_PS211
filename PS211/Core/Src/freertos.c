@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "tim.h"
 #include "../User/joystick.h"
 #include "../User/debug.h"
 #include "../../3rdParty/elog.h"
@@ -128,7 +129,7 @@ void MX_FREERTOS_Init(void) {
   debugTaskHandle = osThreadCreate(osThread(debugTask), NULL);
 
   /* definition and creation of joystickTask */
-  osThreadDef(joystickTask, StartJoystickTask, osPriorityHigh, 0, 128);
+  osThreadDef(joystickTask, StartJoystickTask, osPriorityHigh, 0, 256);
   joystickTaskHandle = osThreadCreate(osThread(joystickTask), NULL);
 
   /* definition and creation of elog_task */
@@ -151,7 +152,8 @@ void MX_FREERTOS_Init(void) {
 void StartDebugTask(void const * argument)
 {
   /* USER CODE BEGIN StartDebugTask */
-  static const char* TAG = "main";
+  //HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+//  static const char* TAG = "main";
   /* 测试日志输出 */
   // log_i("System", "EasyLogger initialized with USART1 output");
   // log_i("System", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
