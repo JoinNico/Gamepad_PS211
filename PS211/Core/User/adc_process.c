@@ -137,8 +137,7 @@ float ADC_PROCESS_GetBatteryVoltage(void)
     const float DIVIDER_RATIO = 5.7f; // 分压比
     const uint16_t adc_max = 4095;    // 12位ADC最大值
 
-    //uint16_t raw = hadcProc.raw_buffer[ADC_CH_BAT_VOLT];
-    uint16_t raw = hadcProc.raw_buffer[4];
+    uint16_t raw = hadcProc.raw_buffer[ADC_CH_BAT_VOLT];
     // log_i("The battery raw voltage is %d",raw);
     hadcProc.battery_voltage = ((float)raw * VREF / (float)adc_max) * DIVIDER_RATIO;
     // log_i("The battery voltage is %.2f",hadcProc.battery_voltage);
