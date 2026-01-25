@@ -155,7 +155,7 @@ void StartDebugTask(void const * argument)
 {
   /* USER CODE BEGIN StartDebugTask */
   //HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  static const char* TAG = "freertos.c";
+  // static const char* TAG = "freertos.c";
   /* 测试日志输出 */
   // log_i("System", "EasyLogger initialized with USART1 output");
   // log_i("System", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);

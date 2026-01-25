@@ -127,11 +127,15 @@ void Joy_Init(void)
     uint32_t lx_sum = 0, ly_sum = 0, rx_sum = 0, ry_sum = 0;
 
     for (int i = 0; i < INIT_SAMPLE_COUNT; i++) {
-        HAL_Delay(15); // 间隔采样，此时OS未启动，无法使用osDelay();
-        lx_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_LX);
-        ly_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_LY);
-        rx_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_RX);
-        ry_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_RY);
+        // 若 adc 数据准备完毕
+        if (ADC_PROCESS_IsDataReady()) {
+            lx_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_LX);
+            ly_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_LY);
+            rx_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_RX);
+            ry_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_RY);
+            // 清空数据准备完毕标志位
+            ADC_PROCESS_ClearDataReadyFlag();
+        }
     }
 
     // 计算平均值
