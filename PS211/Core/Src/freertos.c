@@ -28,7 +28,9 @@
 #include "tim.h"
 #include "../User/joystick.h"
 #include "../User/debug.h"
+#include "../User/adc_process.h"
 #include "../../3rdParty/elog.h"
+#include "../../3rdParty/lwbtn_opts.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -153,25 +155,28 @@ void StartDebugTask(void const * argument)
 {
   /* USER CODE BEGIN StartDebugTask */
   //HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-//  static const char* TAG = "main";
+  static const char* TAG = "freertos.c";
   /* 测试日志输出 */
   // log_i("System", "EasyLogger initialized with USART1 output");
   // log_i("System", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
   // log_i("System", "System clock: %lu Hz", HAL_RCC_GetSysClockFreq());
-
   uint32_t count = 0;
   /* Infinite loop */
   for(;;)
   {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    // ADC_PROCESS_GetBatteryVoltage();
+    // adc_print_raw_buffer_simple("raw_buffer",
+    //                              (uint16_t*)hadcProc.raw_buffer,
+    //                              ADC_PROCESS_NUM_CHANNELS);
     // log_system_status();
     // DebugPrint("Debug Task \r\n");
     // elog_v(TAG, "HelloWorld");
     // elog_d(TAG, "HelloWorld");
-  //   elog_i(TAG, "HelloWorld");
-  //   elog_w(TAG, "HelloWorld");
-  //   elog_e(TAG, "HelloWorld");
-  // //  elog_a(TAG, "0123456789");
+    // elog_i(TAG, "HelloWorld");
+    // elog_w(TAG, "HelloWorld");
+    // elog_e(TAG, "HelloWorld");
+    // elog_a(TAG, "0123456789");
   //   /* 输出调试信息 */
   //   elog_i("Debug", "LED toggled, count: %lu", count++);
   //   elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
@@ -201,11 +206,13 @@ void StartDebugTask(void const * argument)
 void StartJoystickTask(void const * argument)
 {
   /* USER CODE BEGIN StartJoystickTask */
+  button_init();
   /* Infinite loop */
   for(;;)
   {
     Joy_Update();
-
+    get_btn();
+//    log_i("Pressed the button %d", lwbtn_keys);
     osDelay(10);
   }
   /* USER CODE END StartJoystickTask */

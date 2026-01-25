@@ -88,7 +88,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : JOY_ZL_Pin JOY_ZR_Pin KEY1_Pin KEY2_Pin */
   GPIO_InitStruct.Pin = JOY_ZL_Pin|JOY_ZR_Pin|KEY1_Pin|KEY2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BEEP_Pin */

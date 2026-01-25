@@ -40,5 +40,13 @@
  * Open "include/lwbtn/lwbtn_opt.h" and
  * copy & replace here settings you want to change values
  */
+#include "main.h" // 此处修改为用户的主头文件
+
+#define BUTTON_COUNT (sizeof(buttons) / sizeof(buttons[0]))
+
+extern void button_init(void);
+void get_btn();
+
+extern uint8_t lwbtn_keys;
 
 #endif /* LWBTN_OPTS_HDR_H */

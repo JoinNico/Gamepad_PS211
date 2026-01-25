@@ -63,14 +63,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define BP_L_Pin GPIO_PIN_0
-#define BP_L_GPIO_Port GPIOC
-#define BP_R_Pin GPIO_PIN_1
-#define BP_R_GPIO_Port GPIOC
-#define WX_L_Pin GPIO_PIN_2
-#define WX_L_GPIO_Port GPIOC
-#define WX_R_Pin GPIO_PIN_3
-#define WX_R_GPIO_Port GPIOC
+#define DIAL_L_Pin GPIO_PIN_0
+#define DIAL_L_GPIO_Port GPIOC
+#define DIAL_R_Pin GPIO_PIN_1
+#define DIAL_R_GPIO_Port GPIOC
+#define FIVEWAY_L_Pin GPIO_PIN_2
+#define FIVEWAY_L_GPIO_Port GPIOC
+#define FIVEWAY_R_Pin GPIO_PIN_3
+#define FIVEWAY_R_GPIO_Port GPIOC
 #define JOY_XL_Pin GPIO_PIN_1
 #define JOY_XL_GPIO_Port GPIOA
 #define JOY_YL_Pin GPIO_PIN_2
@@ -81,14 +81,16 @@ void Error_Handler(void);
 #define JOY_YR_GPIO_Port GPIOA
 #define OLED_SCK_Pin GPIO_PIN_5
 #define OLED_SCK_GPIO_Port GPIOA
-#define ADC_VBAT_Pin GPIO_PIN_6
-#define ADC_VBAT_GPIO_Port GPIOA
 #define OLED_MOSI_Pin GPIO_PIN_7
 #define OLED_MOSI_GPIO_Port GPIOA
 #define OLED_CS_Pin GPIO_PIN_4
 #define OLED_CS_GPIO_Port GPIOC
 #define OLED_RST_Pin GPIO_PIN_5
 #define OLED_RST_GPIO_Port GPIOC
+#define WHEEL_L_Pin GPIO_PIN_0
+#define WHEEL_L_GPIO_Port GPIOB
+#define WHEEL_R_Pin GPIO_PIN_1
+#define WHEEL_R_GPIO_Port GPIOB
 #define NRF_IRQ_Pin GPIO_PIN_10
 #define NRF_IRQ_GPIO_Port GPIOB
 #define NRF_CE_Pin GPIO_PIN_11

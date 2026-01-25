@@ -36,7 +36,7 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "lwbtn_opts.h"
+#include "lwbtn_opt.h"
 
 #ifdef __cplusplus
 extern "C" {

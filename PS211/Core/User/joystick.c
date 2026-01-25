@@ -6,13 +6,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include "adc.h"
+#include "adc_process.h"
 #include "tim.h"
 #include "../../3rdParty/elog.h"
 #include "filter.h"
 
 
 /* 私有变量 */
-volatile static uint16_t adc_buffer[4] = { 0 };  // ADC DMA缓冲区，4个通道
 static JoyStick_t leftJoy;              // 左摇杆
 static JoyStick_t rightJoy;             // 右摇杆
 
@@ -122,33 +122,16 @@ static float LogCurve(float input, uint8_t is_negative)
  */
 void Joy_Init(void)
 {
-    // TODO 1. 在RTOS启动前，使用 HAL_Delay 进行长时间阻塞采样，严重拖慢系统启动。
-    // TODO 2. 硬件初始化和软件校准耦合在一起，不符合实时系统分层设计。
-
-    // ADC 采样校准
-    HAL_ADCEx_Calibration_Start(&hadc1);
-
-    // 启动ADC DMA
-    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_buffer, 4) != HAL_OK) {
-        Error_Handler();
-    }
-
-    // 启动 TIM8 以开始产生 100Hz TRGO 信号 -> 10ms 一次 ADC 转换
-    HAL_TIM_Base_Start(&htim8);
-
-    // 确保初始化校准数据干净
-    HAL_Delay(5);
-
     // 多次采样求平均作为中心值，提高校准精度
 #define INIT_SAMPLE_COUNT 10
     uint32_t lx_sum = 0, ly_sum = 0, rx_sum = 0, ry_sum = 0;
 
     for (int i = 0; i < INIT_SAMPLE_COUNT; i++) {
         HAL_Delay(15); // 间隔采样，此时OS未启动，无法使用osDelay();
-        lx_sum += adc_buffer[0];
-        ly_sum += adc_buffer[1];
-        rx_sum += adc_buffer[2];
-        ry_sum += adc_buffer[3];
+        lx_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_LX);
+        ly_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_LY);
+        rx_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_RX);
+        ry_sum += ADC_PROCESS_GetRawValue(ADC_CH_JOY_RY);
     }
 
     // 计算平均值
@@ -211,11 +194,10 @@ void Joy_Init(void)
 void Joy_Update(void)
 {
     // 第一步：读取原始ADC值
-    volatile uint16_t lx_raw = adc_buffer[0];
-    volatile uint16_t ly_raw = adc_buffer[1];
-    volatile uint16_t rx_raw = adc_buffer[2];
-    volatile uint16_t ry_raw = adc_buffer[3];
-
+    uint16_t lx_raw = ADC_PROCESS_GetRawValue(ADC_CH_JOY_LX);
+    uint16_t ly_raw = ADC_PROCESS_GetRawValue(ADC_CH_JOY_LY);
+    uint16_t rx_raw = ADC_PROCESS_GetRawValue(ADC_CH_JOY_RX);
+    uint16_t ry_raw = ADC_PROCESS_GetRawValue(ADC_CH_JOY_RY);
      // log_i("Raw ADC: LX=%u, LY=%u, RX=%u, RY=%u",
      //           lx_raw, ly_raw, rx_raw, ry_raw);
 
@@ -280,10 +262,10 @@ void Joy_Update(void)
     float throttle_mapped = LogCurve(y_magnitude, is_negative);
     leftJoy.throttle = (int16_t)(throttle_mapped * 100.0f);
 
-    log_i("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d",
-              leftJoy.x_normalized, leftJoy.x_value,
-              leftJoy.y_normalized, leftJoy.y_value,
-              leftJoy.throttle);
+    // log_i("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d",
+    //           leftJoy.x_normalized, leftJoy.x_value,
+    //           leftJoy.y_normalized, leftJoy.y_value,
+    //           leftJoy.throttle);
 
     // log_i("Right Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d)",
     //           rightJoy.x_normalized, rightJoy.x_value,
