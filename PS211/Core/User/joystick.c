@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "adc.h"
-#include "adc_process.h"
+#include "adc-process.h"
 #include "tim.h"
 #include "../../3rdParty/elog.h"
 #include "filter.h"
@@ -25,11 +25,6 @@ static uint16_t right_y_center = 2048;
 /* 移动平均滤波缓冲区 */
 static uint16_t filter_lx[WIN_SIZE], filter_ly[WIN_SIZE],
                 filter_rx[WIN_SIZE], filter_ry[WIN_SIZE];
-
-/* 菜单控制相关 */
-static uint32_t menu_hold_timer = 0;
-static int8_t last_menu_direction = 0;  // -1:左, 0:中间, 1:右
-static uint8_t menu_fast_mode = 0;
 
 /**
  * @brief 中心死区处理
@@ -177,11 +172,6 @@ void Joy_Init(void)
     rightJoy.x_value = 0;
     rightJoy.y_value = 0;
     rightJoy.throttle = 0;
-
-    menu_hold_timer = 0;
-    last_menu_direction = 0;
-    menu_fast_mode = 0;
-
 }
 
 /**
@@ -304,69 +294,6 @@ JoyStick_t Joy_GetLeftStick(void)
 JoyStick_t Joy_GetRightStick(void)
 {
     return rightJoy;
-}
-
-/**
- * @brief 菜单控制处理
- * @param delta_ms 距离上次调用的时间间隔（毫秒）
- * @return 菜单移动命令：
- *         0  - 无动作
- *         1  - 向右移动一次
- *        -1  - 向左移动一次
- *         2  - 快速向右（保持MENU_FAST_TRIGGER_TIME后）
- *        -2  - 快速向左（保持MENU_FAST_TRIGGER_TIME后）
- * @note 基于左摇杆X轴，划动触发一次，保持1秒后进入快速模式
- */
-int8_t Joy_GetMenuControl(uint32_t delta_ms)
-{
-    int8_t menu_cmd = 0;
-    int8_t current_direction = 0;
-
-    // 判断当前方向（使用左摇杆X轴）
-    if (leftJoy.x_value > MENU_THRESHOLD) {
-        current_direction = 1;  // 右
-    } else if (leftJoy.x_value < -MENU_THRESHOLD) {
-        current_direction = -1;  // 左
-    } else {
-        current_direction = 0;  // 中间
-    }
-
-    // 方向改变时的处理
-    if (current_direction != last_menu_direction) {
-        if (last_menu_direction == 0 && current_direction != 0) {
-            // 从中间位置开始划动
-            menu_cmd = current_direction;  // 立即触发一次菜单移动
-            menu_hold_timer = 0;
-            menu_fast_mode = 0;
-        } else if (current_direction == 0) {
-            // 返回中间位置
-            menu_hold_timer = 0;
-            menu_fast_mode = 0;
-        }
-        last_menu_direction = current_direction;
-    } else {
-        // 方向保持不变
-        if (current_direction != 0) {
-            menu_hold_timer += delta_ms;
-
-            // 保持超过1秒，进入快速模式
-            if (menu_hold_timer >= MENU_FAST_TRIGGER_TIME) {
-                if (!menu_fast_mode) {
-                    menu_fast_mode = 1;
-                }
-
-                // 快速模式下定期触发
-                static uint32_t fast_timer = 0;
-                fast_timer += delta_ms;
-                if (fast_timer >= MENU_FAST_INTERVAL) {
-                    fast_timer = 0;
-                    menu_cmd = current_direction * 2;  // 返回快速命令
-                }
-            }
-        }
-    }
-
-    return menu_cmd;
 }
 
 /**

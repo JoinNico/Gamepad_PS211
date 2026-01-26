@@ -28,7 +28,7 @@
 
 #define LOG_TAG    "adc_process.c"
 // #define LOG_LVL    ELOG_LVL_DEBUG
-#include "adc_process.h"
+#include "adc-process.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -48,21 +48,14 @@ static uint16_t dma_buffer[ADC_PROCESS_DMA_BUFFER_SIZE];
 
 /**
   * @brief  初始化ADC处理模块
-  * @param  hadc: 已配置好的ADC句柄（需在CubeMX/其它地方配置好扫描序列）
   * @note   此函数会校准ADC，并启动DMA双缓冲传输。
   */
-void ADC_PROCESS_Init(ADC_HandleTypeDef* hadc)
+void ADC_PROCESS_Init(void)
 {
-    /* 检查参数 */
-    if (hadc == NULL) {
-        log_e("The ADC handle is NULL");
-        return;
-    }
+
 
     /* 1. 校准ADC */
-    if (HAL_ADCEx_Calibration_Start(hadc) != HAL_OK) {
-        log_e("ADC calibration failed");
-    }
+    HAL_ADCEx_Calibration_Start(&hadc1);
 
     /* 2. 清零DMA缓冲区和ADC生数据保存区 */
     for (int i = 0; i < ADC_PROCESS_DMA_BUFFER_SIZE; i++) {
@@ -73,21 +66,10 @@ void ADC_PROCESS_Init(ADC_HandleTypeDef* hadc)
     }
 
     /* 3. 启动 DMA 循环模式、双缓冲 */
-    if (HAL_ADC_Start_DMA(hadc,
-                         (uint32_t*)dma_buffer,
-                         ADC_PROCESS_DMA_BUFFER_SIZE) != HAL_OK) {
-        /* 启动DMA失败 */
-        log_e("The DMA of ADC failed to start");
-        return;
-    }
+    HAL_ADC_Start_DMA(&hadc1,(uint32_t*)dma_buffer,ADC_PROCESS_DMA_BUFFER_SIZE);
 
     // 4. 启动 TIM8 以开始产生 100Hz TRGO 信号 -> 10ms 一次 ADC 转换
-    if (HAL_TIM_Base_Start(&htim8) != HAL_OK) {
-        log_e("The tim base failed to start");
-    }
-
-    // 确保初始化校准数据干净
-    HAL_Delay(5);
+    HAL_TIM_Base_Start(&htim8);
 
     /* 5. 更新状态 */
     hadcProc.new_data_ready = false;

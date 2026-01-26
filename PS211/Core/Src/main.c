@@ -31,7 +31,7 @@
 /* USER CODE BEGIN Includes */
 #include "../User/debug.h"
 #include "../User/joystick.h"
-#include "../User/adc_process.h"
+#include "../User/adc-process.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,7 +107,7 @@ int main(void)
   MX_TIM8_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  ADC_PROCESS_Init(&hadc1);
+  ADC_PROCESS_Init();     // 初始化 ADC 原始数据处理
   Joy_Init();             // 初始化 Joystick 数据结构
 
   /* USER CODE END 2 */

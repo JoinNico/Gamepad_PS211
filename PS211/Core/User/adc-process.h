@@ -39,20 +39,13 @@ typedef struct {
 extern ADC_ProcessHandle_t hadcProc;
 
 /* 公有函数声明 */
-void ADC_PROCESS_Init(ADC_HandleTypeDef* hadc); // 初始化模块
+void ADC_PROCESS_Init(void); // 初始化模块
 bool ADC_PROCESS_IsDataReady(void);             // 检查新数据是否就绪
 void ADC_PROCESS_ClearDataReadyFlag(void);      // 清除数据就绪标志
 uint16_t ADC_PROCESS_GetRawValue(ADC_ChannelIndex_t ch); // 获取指定通道原始值
 float ADC_PROCESS_GetBatteryVoltage(void);      // 获取计算后的电池电压（单位：V）
-void adc_print_raw_buffer(const char *buffer_name,
-                          uint16_t *buffer,
-                          uint16_t size,
-                          uint16_t adc_max,
-                          float vref,
-                          float divider_ratio);
-void adc_print_raw_buffer_simple(const char *buffer_name,
-                                 uint16_t *buffer,
-                                 uint16_t size);
+void adc_print_raw_buffer_simple(const char *buffer_name, uint16_t *buffer, uint16_t size);
+
 #ifdef __cplusplus
 }
 #endif
