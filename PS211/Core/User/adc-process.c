@@ -52,8 +52,6 @@ static uint16_t dma_buffer[ADC_PROCESS_DMA_BUFFER_SIZE];
   */
 void ADC_PROCESS_Init(void)
 {
-
-
     /* 1. 校准ADC */
     HAL_ADCEx_Calibration_Start(&hadc1);
 

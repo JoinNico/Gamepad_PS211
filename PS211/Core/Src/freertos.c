@@ -179,9 +179,9 @@ void StartDebugTask(void const * argument)
     // elog_a(TAG, "0123456789");
   //   /* 输出调试信息 */
   //   elog_i("Debug", "LED toggled, count: %lu", count++);
-  //   elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
-  //   elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
-  //   elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
+  // elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
+  // elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
+  // elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
   //
   //   if (count % 10 == 0) {
   //     elog_i("System", "System running for %lu seconds", HAL_GetTick() / 1000);
@@ -207,12 +207,13 @@ void StartJoystickTask(void const * argument)
 {
   /* USER CODE BEGIN StartJoystickTask */
   button_init();
+
   /* Infinite loop */
   for(;;)
   {
     Joy_Update();
     get_btn();
-//    log_i("Pressed the button %d", lwbtn_keys);
+
     osDelay(10);
   }
   /* USER CODE END StartJoystickTask */

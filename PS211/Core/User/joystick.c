@@ -10,6 +10,7 @@
 #include "tim.h"
 #include "../../3rdParty/elog.h"
 #include "filter.h"
+#include "vofa.h"
 
 
 /* 私有变量 */
@@ -256,6 +257,10 @@ void Joy_Update(void)
     float throttle_mapped = LogCurve(y_magnitude, is_negative);
     leftJoy.throttle = (int16_t)(throttle_mapped * 100.0f);
 
+    // float data[2];
+    // data[0] = leftJoy.x_normalized;
+    // data[1] = leftJoy.y_normalized;
+    // JustFloat_Send(data, 2);
     // log_i("Left Stick: X=%+6.2f (%+4d), Y=%+6.2f (%+4d), Throttle=%+4d",
     //           leftJoy.x_normalized, leftJoy.x_value,
     //           leftJoy.y_normalized, leftJoy.y_value,
