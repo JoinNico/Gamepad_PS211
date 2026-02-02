@@ -35,7 +35,7 @@
 
 #include "adc.h"
 #include "tim.h"
-#include "../../3rdParty/elog.h"
+#include "../../3rdParty/elog/elog.h"
 
 /* 私有全局变量 */
 ADC_ProcessHandle_t hadcProc = {

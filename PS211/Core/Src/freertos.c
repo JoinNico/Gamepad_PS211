@@ -29,8 +29,8 @@
 #include "../User/joystick.h"
 #include "../User/debug.h"
 #include "../User/adc-process.h"
-#include "../../3rdParty/elog.h"
-#include "../../3rdParty/lwbtn_opts.h"
+#include "../../3rdParty/elog/elog.h"
+#include "../../3rdParty/lwbtn/lwbtn_opts.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

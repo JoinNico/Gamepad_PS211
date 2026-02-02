@@ -1,7 +1,7 @@
-#include "../../3rdParty/lwbtn_opts.h"
-#include "../../3rdParty/lwbtn.h"
+#include "../../3rdParty/lwbtn/lwbtn_opts.h"
+#include "../../3rdParty/lwbtn/lwbtn.h"
 #include "stm32f1xx_hal.h"
-#include "../../3rdParty/elog.h"
+#include "../../3rdParty/elog/elog.h"
 #include "dial-switch.h"  // 添加拨轮开关支持
 
 /**
