@@ -39,7 +39,7 @@
 
 /* Include application options */
 #ifndef LWBTN_IGNORE_USER_OPTS
-#include "../lwbtn_opts.h"
+#include "lwbtn_opts.h"
 #endif /* lwbtn_IGNORE_USER_OPTS */
 
 #ifdef __cplusplus

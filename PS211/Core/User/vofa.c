@@ -6,7 +6,7 @@
  */
 
 #include "vofa.h"
-#include "../../3rdParty/elog.h"
+#include "../../3rdParty/elog/elog.h"
 #include <string.h>
 
 #include "usart.h"

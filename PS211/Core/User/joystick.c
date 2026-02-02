@@ -8,7 +8,7 @@
 #include "adc.h"
 #include "adc-process.h"
 #include "tim.h"
-#include "../../3rdParty/elog.h"
+#include "../../3rdParty/elog/elog.h"
 #include "filter.h"
 #include "vofa.h"
 

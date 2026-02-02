@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include "cmsis_os.h"
 #include "usart.h"
-#include "../../3rdParty/elog.h"
+#include "../../3rdParty/elog/elog.h"
 
 /**
  * @brief 安全的串口发送函数（内部使用）

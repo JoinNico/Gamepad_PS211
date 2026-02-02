@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../../3rdParty/lwbtn.h"  // 添加LwBTN支持
+#include "../../3rdParty/lwbtn/lwbtn.h"  // 添加LwBTN支持
 
 /* ===== 拨轮配置 ===== */
 #define DIAL_NUM_POSITIONS     3       // 三档拨轮
