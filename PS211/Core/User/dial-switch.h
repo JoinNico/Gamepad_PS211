@@ -14,14 +14,14 @@ extern "C" {
 #define DIAL_SWITCH_COUNT      2       // 两个拨轮开关（左/右）
 
 /* 拨轮ADC通道定义 - 与你的adc_process模块对应 */
-#define DIAL_LEFT_CHANNEL      4       // 左拨轮ADC通道
-#define DIAL_RIGHT_CHANNEL     5       // 右拨轮ADC通道
+#define DIAL_LEFT_CHANNEL      ADC_CH_DIAL_L       // 左拨轮ADC通道
+#define DIAL_RIGHT_CHANNEL     ADC_CH_DIAL_R       // 右拨轮ADC通道
 
 /* ADC电压阈值定义 (12位ADC, 0-4095) */
 #define DIAL_THRESHOLDS_CONFIG \
-    {0,    1350,   0},     /* 档位0: 通常对应最左/下位置 */ \
-    {1351, 2750,   1},     /* 档位1: 中间位置 */ \
-    {2751, 4095,   2}      /* 档位2: 最右/上位置 */
+    {100,    1000,   0},     /* 档位0: 通常对应最左/下位置 */ \
+    {1000, 2750,   1},       /* 档位1: 中间位置 */ \
+    {2751, 4095,   2}        /* 档位2: 最右/上位置 */
 
 /* 防抖配置 */
 #define DIAL_DEBOUNCE_MS       20      // 防抖时间(毫秒)
@@ -85,7 +85,7 @@ bool Dial_Init(Dial_Handle_t *hdial,
                uint16_t init_adc_value,
                lwbtn_btn_t *lwbtn_ptr);    // 新增LwBTN实例参数
 void Dial_InitAll(void);
-bool Dial_Update(Dial_Handle_t *hdial, uint16_t raw_adc, uint32_t current_time_ms);
+void Dial_UpdateAll(uint16_t left_adc, uint16_t right_adc, uint32_t current_time_ms);
 uint8_t Dial_GetPosition(const Dial_Handle_t *hdial);
 uint16_t Dial_GetRawADC(const Dial_Handle_t *hdial);
 

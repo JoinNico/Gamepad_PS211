@@ -1,7 +1,10 @@
+#include "adc-process.h"
 #include "../../3rdParty/lwbtn/lwbtn_opts.h"
 #include "../../3rdParty/lwbtn/lwbtn.h"
 #include "stm32f1xx_hal.h"
 #include "../../3rdParty/elog/elog.h"
+#include "../../3rdParty/WouoUI/WouoUI.h"
+#include "../../3rdParty/WouoUI/WouoUI_user.h"
 #include "dial-switch.h"  // 添加拨轮开关支持
 
 /**
@@ -147,9 +150,14 @@ void button_event_handler(lwbtn_t* lwobj, lwbtn_btn_t* btn, lwbtn_evt_t evt)
             if (btn->click.cnt == 2) {    /* 双击 */
                 lwbtn_keys = btn_index + 1;
                 btn->click.cnt = 0;
+                WOUOUI_MSG_QUE_SEND(msg_click);
                 log_i("Double-click key %d\r\n", lwbtn_keys);
             } else { /* 单击 */
                 lwbtn_keys = btn_index + 1;
+
+                WOUOUI_MSG_QUE_SEND(msg_right);
+
+
                 log_i("Click the key %d\r\n", lwbtn_keys);
             }
             break;
@@ -180,6 +188,7 @@ static void dial_lwbtn_callback(uint8_t dial_index, uint8_t position, uint8_t ev
     /* 根据拨轮位置执行不同操作 */
     switch (dial_index) {
         case DIAL_LEFT_INDEX:
+            WOUOUI_MSG_QUE_SEND(msg_down);
             // 左拨轮操作
             break;
         case DIAL_RIGHT_INDEX:
@@ -217,9 +226,9 @@ void get_btn(void)
 
         /* 更新拨轮状态（需要从ADC获取值） */
         // 注意：这里需要你从adc_process模块获取拨轮ADC值
-        // uint16_t left_dial_adc = ADC_PROCESS_GetRawValue(DIAL_LEFT_CHANNEL);
-        // uint16_t right_dial_adc = ADC_PROCESS_GetRawValue(DIAL_RIGHT_CHANNEL);
-        // Dial_UpdateAll(left_dial_adc, right_dial_adc, current_time);
+        uint16_t left_dial_adc = ADC_PROCESS_GetRawValue(DIAL_LEFT_CHANNEL);
+        uint16_t right_dial_adc = ADC_PROCESS_GetRawValue(DIAL_RIGHT_CHANNEL);
+        Dial_UpdateAll(left_dial_adc, right_dial_adc, current_time);
 
         /* 处理LwBTN按钮 */
         lwbtn_process(current_time);

@@ -28,9 +28,13 @@
 #include "tim.h"
 #include "../User/joystick.h"
 #include "../User/debug.h"
+#include "../User/oled.h"
 #include "../User/adc-process.h"
+#include "../User/icm20602.h"
 #include "../../3rdParty/elog/elog.h"
 #include "../../3rdParty/lwbtn/lwbtn_opts.h"
+#include "../../3rdParty/WouoUI/WouoUI.h"
+#include "../../3rdParty/WouoUI/WouoUI_user.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -160,17 +164,16 @@ void StartDebugTask(void const * argument)
   // log_i("System", "EasyLogger initialized with USART1 output");
   // log_i("System", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
   // log_i("System", "System clock: %lu Hz", HAL_RCC_GetSysClockFreq());
-  uint32_t count = 0;
+
+  WouoUI_AttachSendBuffFun(OLED_SendBuff);
+  TestUI_Init();
+
   /* Infinite loop */
   for(;;)
   {
-    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    // ADC_PROCESS_GetBatteryVoltage();
-    // adc_print_raw_buffer_simple("raw_buffer",
-    //                              (uint16_t*)hadcProc.raw_buffer,
-    //                              ADC_PROCESS_NUM_CHANNELS);
+    // HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    // GUI_Fill(WIDTH/3,0,WIDTH-1,HEIGHT-1,1);
     // log_system_status();
-    // DebugPrint("Debug Task \r\n");
     // elog_v(TAG, "HelloWorld");
     // elog_d(TAG, "HelloWorld");
     // elog_i(TAG, "HelloWorld");
@@ -182,16 +185,10 @@ void StartDebugTask(void const * argument)
   // elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
   // elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
   // elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
-  //
-  //   if (count % 10 == 0) {
-  //     elog_i("System", "System running for %lu seconds", HAL_GetTick() / 1000);
-  //   }
-  //
-  //   if (count % 20 == 0) {
-  //     elog_w("System", "This is a warning message at count %lu", count);
-  //   }
+   WouoUI_Proc(5);
 
-    osDelay(1000);
+   // adc_print_raw_buffer_simple("ADC", (uint16_t* )hadcProc.raw_buffer, 11);
+   osDelay(5);
   }
   /* USER CODE END StartDebugTask */
 }
@@ -211,9 +208,11 @@ void StartJoystickTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+
     Joy_Update();
     get_btn();
 
+   // icm20602_data_change();
     osDelay(10);
   }
   /* USER CODE END StartJoystickTask */

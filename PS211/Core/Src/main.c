@@ -32,6 +32,8 @@
 #include "../User/debug.h"
 #include "../User/joystick.h"
 #include "../User/adc-process.h"
+#include "../User/oled.h"
+#include "../User/icm20602.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,7 +111,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   ADC_PROCESS_Init();     // 初始化 ADC 原始数据处理
   Joy_Init();             // 初始化 Joystick 数据结构
-
+  OLED_Init();
+  // icm20602_init_spi();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
