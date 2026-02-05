@@ -31,6 +31,7 @@
 #include "../User/oled.h"
 #include "../User/adc-process.h"
 #include "../User/icm20602.h"
+#include "../User/nRF24L01.h"
 #include "../../3rdParty/elog/elog.h"
 #include "../../3rdParty/lwbtn/lwbtn_opts.h"
 #include "../../3rdParty/WouoUI/WouoUI.h"
@@ -164,17 +165,21 @@ void MX_FREERTOS_Init(void) {
 void StartDebugTask(void const * argument)
 {
   /* USER CODE BEGIN StartDebugTask */
-  //HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  // static const char* TAG = "freertos.c";
-  /* 测试日志输出 */
-  // log_i("System", "EasyLogger initialized with USART1 output");
-  // log_i("System", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
-  // log_i("System", "System clock: %lu Hz", HAL_RCC_GetSysClockFreq());
+  while(nRF24_Check())
+  {
+    log_i("NRF24L01 Error");
+    osDelay(500);
+  }
+
+  nRF24_TX_Mode();
+  log_i("NRF24L01 TX Mode OK");
+  uint8_t tmp_buf[33];
   /* Infinite loop */
   for(;;)
   {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-
+    sprintf(tmp_buf, "%s", "Hello world\r\n");
+    nRF24_TXPacket(tmp_buf);
     // elog_v(TAG, "HelloWorld");
     // elog_d(TAG, "HelloWorld");
     // elog_i(TAG, "HelloWorld");
@@ -186,7 +191,7 @@ void StartDebugTask(void const * argument)
     // elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
     // elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
 
-    adc_print_raw_buffer_simple("ADC", (uint16_t* )hadcProc.raw_buffer, 11);
+    // adc_print_raw_buffer_simple("ADC", (uint16_t* )hadcProc.raw_buffer, 11);
     osDelay(1000);
   }
   /* USER CODE END StartDebugTask */

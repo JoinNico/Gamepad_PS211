@@ -112,6 +112,7 @@ int main(void)
   ADC_PROCESS_Init();     // 初始化 ADC 原始数据处理
   Joy_Init();             // 初始化 Joystick 数据结构
   OLED_Init();
+
   // icm20602_init_spi();
   /* USER CODE END 2 */
 

@@ -54,7 +54,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, OLED_CS_Pin|OLED_RST_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, NRF_CE_Pin|NRF_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, NRF_CE_Pin|NRF_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BEEP_GPIO_Port, BEEP_Pin, GPIO_PIN_RESET);
@@ -82,7 +82,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = NRF_CE_Pin|NRF_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : JOY_ZL_Pin JOY_ZR_Pin KEY1_Pin KEY2_Pin */
