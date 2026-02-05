@@ -22,8 +22,8 @@ typedef enum {
     ADC_CH_WHEEL_R,       // ADC 通道9: 右滚轮
     ADC_CH_DIAL_L,        // ADC 通道10: 左拨盘
     ADC_CH_DIAL_R,        // ADC 通道11: 右拨盘
-    ADC_CH_5WAY_H,        // ADC 通道12: 左五向开关
-    ADC_CH_5WAY_V,        // ADC 通道13: 右五向开关
+    ADC_CH_5WAY_L,        // ADC 通道12: 左五向开关
+    ADC_CH_5WAY_R,        // ADC 通道13: 右五向开关
 
     // 确保枚举最大值 = 10 与 ADC_PROCESS_NUM_CHANNELS - 1 一致
 } ADC_ChannelIndex_t;

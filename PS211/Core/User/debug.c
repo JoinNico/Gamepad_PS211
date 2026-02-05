@@ -32,33 +32,3 @@ void DebugPrint(const char* format, ...)
         debug_send_string(buffer, len);
     }
 }
-
-
-
-/**
- * @brief 输出系统状态信息
- */
-void log_system_status(void)
-{
-    /* 输出任务状态 */
-    log_i("System", "===== System Status =====");
-    log_i("System", "Tick Count: %lu", HAL_GetTick());
-    log_i("System", "Free Heap: %lu bytes", xPortGetFreeHeapSize());
-    log_i("System", "Minimum Ever Free Heap: %lu bytes", xPortGetMinimumEverFreeHeapSize());
-
-    /* 输出任务信息 */
-    TaskHandle_t debugTask = (TaskHandle_t)debugTaskHandle;
-    TaskHandle_t joystickTask = (TaskHandle_t)joystickTaskHandle;
-
-    if (debugTask != NULL) {
-        log_i("System", "DebugTask Stack High Water: %lu",
-              uxTaskGetStackHighWaterMark(debugTask));
-    }
-
-    if (joystickTask != NULL) {
-        log_i("System", "JoystickTask Stack High Water: %lu",
-              uxTaskGetStackHighWaterMark(joystickTask));
-    }
-
-    log_i("System", "=========================");
-}

@@ -46,7 +46,6 @@
 
 extern void button_init(void);
 void get_btn();
-void get_dial_status(void);
 
 extern uint8_t lwbtn_keys;
 

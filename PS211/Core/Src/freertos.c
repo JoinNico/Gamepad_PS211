@@ -59,6 +59,7 @@
 osThreadId debugTaskHandle;
 osThreadId joystickTaskHandle;
 osThreadId elog_taskHandle;
+osThreadId WouoUITaskHandle;
 osSemaphoreId elog_lockHandle;
 osSemaphoreId elog_asyncHandle;
 osSemaphoreId elog_dma_lockHandle;
@@ -71,6 +72,7 @@ osSemaphoreId elog_dma_lockHandle;
 void StartDebugTask(void const * argument);
 void StartJoystickTask(void const * argument);
 void StartELogTask(void const * argument);
+void StartWouoUITask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -131,16 +133,20 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of debugTask */
-  osThreadDef(debugTask, StartDebugTask, osPriorityNormal, 0, 512);
+  osThreadDef(debugTask, StartDebugTask, osPriorityHigh, 0, 256);
   debugTaskHandle = osThreadCreate(osThread(debugTask), NULL);
 
   /* definition and creation of joystickTask */
-  osThreadDef(joystickTask, StartJoystickTask, osPriorityHigh, 0, 256);
+  osThreadDef(joystickTask, StartJoystickTask, osPriorityNormal, 0, 256);
   joystickTaskHandle = osThreadCreate(osThread(joystickTask), NULL);
 
   /* definition and creation of elog_task */
-  osThreadDef(elog_task, StartELogTask, osPriorityLow, 0, 512);
+  osThreadDef(elog_task, StartELogTask, osPriorityRealtime, 0, 512);
   elog_taskHandle = osThreadCreate(osThread(elog_task), NULL);
+
+  /* definition and creation of WouoUITask */
+  osThreadDef(WouoUITask, StartWouoUITask, osPriorityLow, 0, 512);
+  WouoUITaskHandle = osThreadCreate(osThread(WouoUITask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -164,31 +170,24 @@ void StartDebugTask(void const * argument)
   // log_i("System", "EasyLogger initialized with USART1 output");
   // log_i("System", "FreeRTOS version: %s", tskKERNEL_VERSION_NUMBER);
   // log_i("System", "System clock: %lu Hz", HAL_RCC_GetSysClockFreq());
-
-  WouoUI_AttachSendBuffFun(OLED_SendBuff);
-  TestUI_Init();
-
   /* Infinite loop */
   for(;;)
   {
-    // HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    // GUI_Fill(WIDTH/3,0,WIDTH-1,HEIGHT-1,1);
-    // log_system_status();
+    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+
     // elog_v(TAG, "HelloWorld");
     // elog_d(TAG, "HelloWorld");
     // elog_i(TAG, "HelloWorld");
     // elog_w(TAG, "HelloWorld");
     // elog_e(TAG, "HelloWorld");
     // elog_a(TAG, "0123456789");
-  //   /* 输出调试信息 */
-  //   elog_i("Debug", "LED toggled, count: %lu", count++);
-  // elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
-  // elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
-  // elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
-   WouoUI_Proc(5);
 
-   // adc_print_raw_buffer_simple("ADC", (uint16_t* )hadcProc.raw_buffer, 11);
-   osDelay(5);
+    // elog_v("Debug", "debugTask stack free: %lu", uxTaskGetStackHighWaterMark(debugTaskHandle));
+    // elog_v("Debug", "joystick stack free: %lu", uxTaskGetStackHighWaterMark(joystickTaskHandle));
+    // elog_v("Debug", "elog stack free: %lu", uxTaskGetStackHighWaterMark(elog_taskHandle));
+
+    adc_print_raw_buffer_simple("ADC", (uint16_t* )hadcProc.raw_buffer, 11);
+    osDelay(1000);
   }
   /* USER CODE END StartDebugTask */
 }
@@ -208,11 +207,10 @@ void StartJoystickTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-
     Joy_Update();
     get_btn();
 
-   // icm20602_data_change();
+    // icm20602_data_change();
     osDelay(10);
   }
   /* USER CODE END StartJoystickTask */
@@ -234,6 +232,27 @@ __weak void StartELogTask(void const * argument)
     osDelay(1);
   }
   /* USER CODE END StartELogTask */
+}
+
+/* USER CODE BEGIN Header_StartWouoUITask */
+/**
+* @brief Function implementing the WouoUITask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartWouoUITask */
+void StartWouoUITask(void const * argument)
+{
+  /* USER CODE BEGIN StartWouoUITask */
+  WouoUI_AttachSendBuffFun(OLED_SendBuff);
+  TestUI_Init();
+  /* Infinite loop */
+  for(;;)
+  {
+    WouoUI_Proc(5);
+    osDelay(1);
+  }
+  /* USER CODE END StartWouoUITask */
 }
 
 /* Private application code --------------------------------------------------*/

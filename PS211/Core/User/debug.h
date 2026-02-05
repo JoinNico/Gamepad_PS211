@@ -16,6 +16,5 @@ void Debug_Init(void);
 void DebugPrint(const char* format, ...);
 
 void elog_init_system(void);
-void log_system_status(void);
 
 #endif // PS211_DEBUG_H
