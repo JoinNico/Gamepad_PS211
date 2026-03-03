@@ -180,6 +180,7 @@ void StartDebugTask(void const * argument)
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     sprintf(tmp_buf, "%s", "Hello world\r\n");
     nRF24_TXPacket(tmp_buf);
+
     // elog_v(TAG, "HelloWorld");
     // elog_d(TAG, "HelloWorld");
     // elog_i(TAG, "HelloWorld");
@@ -255,7 +256,7 @@ void StartWouoUITask(void const * argument)
   for(;;)
   {
     WouoUI_Proc(5);
-    osDelay(1);
+    osDelay(5);
   }
   /* USER CODE END StartWouoUITask */
 }
